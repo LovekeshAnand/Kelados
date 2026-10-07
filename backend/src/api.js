@@ -50,7 +50,7 @@ const presetSchema = z.object({
 
 export function createApp() {
   const app = express();
-  const origins = (process.env.CORS_ORIGINS || "*").split(",").map((s) => s.trim());
+  const origins = (process.env.CORS_ORIGINS || "*").split(",").map((s) => s.trim().replace(/\/+$/, ""));
 
   app.set("trust proxy", true);
   app.use(helmet());
