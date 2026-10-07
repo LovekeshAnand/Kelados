@@ -1,0 +1,10 @@
+{
+  // Static export (next.config.ts output: "export") served as Workers static assets, no server runtime.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kelados",
+  "compatibility_date": "2026-10-06",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  }
+}
