@@ -1,16 +1,40 @@
 {
   "name": "kelados",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Free, unlimited, open-source text-to-speech that runs on your own machine. SDK, CLI, and a drop-in compatible local server.",
   "type": "module",
   "license": "MIT",
   "main": "src/index.js",
   "types": "src/index.d.ts",
-  "exports": { ".": { "types": "./src/index.d.ts", "default": "./src/index.js" } },
-  "bin": { "kelados": "bin/kelados.js" },
-  "files": ["src", "bin", "README.md"],
-  "engines": { "node": ">=20" },
-  "keywords": ["tts", "text-to-speech", "kokoro", "tts-server", "offline", "voice"],
-  "scripts": { "test": "node --test" },
-  "dependencies": { "kokoro-js": "^1.2.1" }
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "bin": {
+    "kelados": "bin/kelados.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "tts",
+    "text-to-speech",
+    "kokoro",
+    "tts-server",
+    "offline",
+    "voice"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "kokoro-js": "^1.2.1"
+  }
 }

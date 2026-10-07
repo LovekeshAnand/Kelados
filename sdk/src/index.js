@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 export const MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
 // Production API used for optional workspace sync; override with KELADOS_API_URL or the baseUrl option.
-export const DEFAULT_API = "https://kelados-api.vercel.app";
+export const DEFAULT_API = "https://kelados.vercel.app";
 
 /** Encode mono float samples [-1, 1] as a 16-bit PCM WAV file. */
 export function encodeWav(samples, sampleRate) {
