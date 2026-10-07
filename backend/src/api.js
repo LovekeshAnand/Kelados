@@ -10,7 +10,8 @@ let connecting;
 function connectDb() {
   if (!process.env.MONGODB_URI) throw new Error("MONGODB_URI is not set");
   // maxPoolSize 1 keeps serverless isolates (Workers) from exhausting Atlas M0's connection limit.
-  connecting ??= mongoose.connect(process.env.MONGODB_URI, { maxPoolSize: 1, serverSelectionTimeoutMS: 8000 })
+  // dbName pins our own database; a URI without a path would otherwise land in the shared default "test" db.
+  connecting ??= mongoose.connect(process.env.MONGODB_URI, { dbName: "kelados", maxPoolSize: 1, serverSelectionTimeoutMS: 8000 })
     .catch((e) => { connecting = undefined; throw e; });
   return connecting;
 }
