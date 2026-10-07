@@ -1,0 +1,25 @@
+{
+  "name": "kelados-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kelados API: accounts, API keys, projects, presets, lexicon, usage. No synthesis runs here.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.1",
+    "zod": "^4.6.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
