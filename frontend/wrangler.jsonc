@@ -3,6 +3,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kelados",
   "compatibility_date": "2026-10-06",
+  // Build runs as part of `wrangler deploy`, so the dashboard build command can stay empty.
+  "build": { "command": "npm run build" },
   "assets": {
     "directory": "./out",
     "not_found_handling": "404-page"
