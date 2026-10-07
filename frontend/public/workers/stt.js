@@ -1,6 +1,10 @@
 // Kelados STT worker: Whisper running in the browser via transformers.js.
 import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
+// Hugging Face 404s any request whose Referer is a *.workers.dev site, so never send one.
+const _fetch = self.fetch.bind(self);
+self.fetch = (input, init) => _fetch(input, { ...init, referrerPolicy: "no-referrer" });
+
 const pipes = new Map();
 
 async function hasWebGPU() {

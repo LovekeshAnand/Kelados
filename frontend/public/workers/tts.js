@@ -2,6 +2,10 @@
 // Model weights stream from the Hugging Face CDN and are cached by the browser after the first load.
 import { KokoroTTS, TextSplitterStream } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js";
 
+// Hugging Face 404s any request whose Referer is a *.workers.dev site, so never send one.
+const _fetch = self.fetch.bind(self);
+self.fetch = (input, init) => _fetch(input, { ...init, referrerPolicy: "no-referrer" });
+
 const MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
 let tts = null;
 let loading = null;
