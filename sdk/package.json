@@ -1,6 +1,6 @@
 {
   "name": "kelados",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Free, unlimited, open-source text-to-speech that runs on your own machine. SDK, CLI, and a drop-in compatible local server.",
   "type": "module",
   "license": "MIT",
