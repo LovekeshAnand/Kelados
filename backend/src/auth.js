@@ -30,8 +30,9 @@ export async function hashPassword(password) {
 }
 
 export async function verifyPassword(password, stored) {
-  const [scheme, iters, salt, hash] = stored.split("$");
-  if (scheme !== "pbkdf2") return false;
+  // Missing or foreign-format hashes (e.g. users created by another app on the same DB) are a failed login, not a crash.
+  const [scheme, iters, salt, hash] = String(stored ?? "").split("$");
+  if (scheme !== "pbkdf2" || !salt || !hash) return false;
   const actual = await pbkdf2(password, Buffer.from(salt, "base64"), Number(iters));
   const expected = Buffer.from(hash, "base64");
   return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
