@@ -11,11 +11,28 @@ const bebas = Bebas_Neue({ variable: "--font-bebas", subsets: ["latin"], weight:
 const instrument = Instrument_Serif({ variable: "--font-instrument", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
-  title: { default: "Kelados: free, unlimited, open-source text-to-speech", template: "%s · Kelados" },
+  metadataBase: new URL("https://kelados.lovekeshanand6.workers.dev"),
+  title: { default: "Kelados – Free, Unlimited Text-to-Speech", template: "%s · Kelados" },
   description:
-    "Natural AI voices that run in your browser. No credits, no limits, no sign-up. Open source, with an SDK and a drop-in compatible server for your own projects.",
-  keywords: ["text to speech", "free tts", "ai voice generator", "open source tts", "kokoro", "audiobook maker"],
-  openGraph: { title: "Kelados: every voice, free forever", description: "Unlimited AI text-to-speech that runs on your own device.", type: "website" },
+    "Natural AI voices that run in your browser. No credits, no limits, no sign-up required. Open source TTS powered by Kokoro, with an SDK and self-hosted server for developers.",
+  keywords: ["text to speech", "free tts", "ai voice generator", "open source tts", "kokoro tts", "audiobook maker", "browser tts", "offline tts", "tts sdk"],
+  authors: [{ name: "Kelados" }],
+  creator: "Kelados",
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "Kelados – Every Voice, Free Forever",
+    description: "Unlimited AI text-to-speech that runs on your own device. No credits, no limits, no uploads.",
+    type: "website",
+    url: "https://kelados.lovekeshanand6.workers.dev",
+    siteName: "Kelados",
+    images: [{ url: "/og-image.png", width: 2048, height: 1236, alt: "Kelados – Free, Unlimited Text-to-Speech" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kelados – Free, Unlimited Text-to-Speech",
+    description: "Natural AI voices in your browser. No credits, no limits, open source.",
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport: Viewport = { themeColor: "#0a0a0b" };
