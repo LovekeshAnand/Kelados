@@ -1,23 +1,36 @@
 @import "tailwindcss";
 
+/* Kelados: black and baby pink, halftone dots, tall condensed type. */
 @theme {
-  --color-bg: #0a0a0b;
-  --color-surface: #111113;
-  --color-elevated: #18181b;
-  --color-line: #26262b;
-  --color-line-strong: #3a3a41;
-  --color-fg: #ededef;
-  --color-muted: #8e8e98;
-  --color-subtle: #5f5f69;
-  --color-accent: #f2b45a;
-  --color-accent-soft: #f2b45a1f;
-  --color-danger: #f26d6d;
-  --color-ok: #6ee7a8;
+  --color-bg: #050405;
+  --color-surface: #0e0b0d;
+  --color-elevated: #181217;
+  --color-line: #2a2027;
+  --color-line-strong: #46343f;
+  --color-fg: #fff3f8;
+  --color-muted: #c2a5b4;
+  --color-subtle: #7d6672;
+  --color-accent: #ffb3d1;        /* baby pink */
+  --color-accent-strong: #ff4fa0; /* neon pink, used sparingly */
+  --color-accent-soft: #ffb3d11c;
+  --color-danger: #ff6b7d;
+  --color-ok: #8ff0c0;
 
   --font-sans: var(--font-geist), system-ui, sans-serif;
-  --font-serif: var(--font-instrument), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-brand: var(--font-bebas), var(--font-geist), sans-serif;
+  --font-display: var(--font-antonio), "Arial Narrow", sans-serif;
+
+  --animate-drift: drift 18s ease-in-out infinite;
+  --animate-pulse-dot: pulse-dot 1.2s ease-in-out infinite;
+
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(-1.5deg); }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.5; }
+  }
 }
 
 :root { color-scheme: dark; }
@@ -37,13 +50,43 @@ input[type="range"] { accent-color: var(--color-accent); }
 
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
-/* Faint grid used behind hero sections */
-@utility grid-bg {
+/* Tall condensed uppercase headings, Hermes-style. */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+}
+
+/* Small uppercase labels for nav, kickers and buttons. */
+@utility label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Halftone dot field, fading out from the top. */
+@utility dots {
+  background-image: radial-gradient(circle, rgb(255 179 209 / 0.16) 1px, transparent 1.6px);
+  background-size: 14px 14px;
+  mask-image: radial-gradient(ellipse at top, black 20%, transparent 70%);
+}
+
+/* Dots that grow toward one corner, like a halftone gradient. */
+@utility dots-ramp {
   background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse at top, black 30%, transparent 75%);
+    radial-gradient(circle, rgb(255 179 209 / 0.5) 1.4px, transparent 2px),
+    radial-gradient(circle, rgb(255 179 209 / 0.22) 2.4px, transparent 3px);
+  background-size: 12px 12px, 24px 24px;
+  background-position: 0 0, 6px 6px;
+  mask-image: linear-gradient(115deg, transparent 25%, black 95%);
+}
+
+/* Soft pink bloom behind hero art. */
+@utility bloom {
+  background: radial-gradient(closest-side, rgb(255 79 160 / 0.28), rgb(255 179 209 / 0.08) 55%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

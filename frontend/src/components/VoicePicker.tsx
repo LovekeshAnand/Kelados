@@ -1,29 +1,20 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import { VOICES, voiceById, type Voice } from "@/lib/voices";
-import { synthesize } from "@/lib/tts";
-import { concatAudio } from "@/lib/audio";
 import { btn, Spinner } from "./ui";
 
-let previewCtx: AudioContext | null = null;
-const previewCache = new Map<string, AudioBuffer>();
+let playing: HTMLAudioElement | null = null;
 
-/** Speak a short sample in a voice; cached per voice for the session. */
-export async function previewVoice(v: Voice) {
-  previewCtx ??= new AudioContext();
-  let buf = previewCache.get(v.id);
-  if (!buf) {
-    const chunks = await synthesize(`Hi, I'm ${v.name}. ${v.vibe}.`, { voice: v.id, speed: 1 });
-    const rate = chunks[0]?.sampleRate ?? 24000;
-    const data = concatAudio(chunks, rate);
-    buf = previewCtx.createBuffer(1, data.length, rate);
-    buf.copyToChannel(data, 0);
-    previewCache.set(v.id, buf);
-  }
-  const src = previewCtx.createBufferSource();
-  src.buffer = buf;
-  src.connect(previewCtx.destination);
-  src.start();
+/** Play a voice's pre-rendered sample (public/previews), so browsing voices needs no model download. */
+export function previewVoice(v: Voice) {
+  playing?.pause();
+  const a = (playing = new Audio(`/previews/${v.id}.mp3`));
+  return new Promise<void>((ok, fail) => {
+    a.onended = () => ok();
+    a.onpause = () => ok();
+    a.onerror = () => fail(new Error("Preview unavailable"));
+    a.play().catch(fail);
+  });
 }
 
 export function VoiceAvatar({ v, size = "md" }: { v: Voice; size?: "sm" | "md" }) {

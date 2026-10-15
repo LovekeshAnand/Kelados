@@ -2,7 +2,19 @@
   Cache-Control: public, max-age=3600
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
+/previews/*
+  Cache-Control: public, max-age=604800
+/art/*
+  Cache-Control: public, max-age=604800
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
-  Permissions-Policy: microphone=(self)
+  Permissions-Policy: microphone=(self), display-capture=(self)
+  # Cross-origin isolation unlocks SharedArrayBuffer, so the WASM fallback runs multi-threaded (2-4x faster
+  # on machines without WebGPU). "credentialless" keeps CDN scripts, model downloads and analytics working.
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+/word/*
+  # Office hosts this page in its own frame and talks to it through Office.js; keep it un-isolated.
+  ! Cross-Origin-Opener-Policy
+  ! Cross-Origin-Embedder-Policy

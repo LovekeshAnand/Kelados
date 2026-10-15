@@ -3,13 +3,17 @@ import { parseArgs } from "node:util";
 import { readFile } from "node:fs/promises";
 import { createKelados } from "../src/index.js";
 import { serve } from "../src/server.js";
+import { runMcp } from "../src/mcp.js";
+import { playWav } from "../src/play.js";
 
 const HELP = `kelados: free, unlimited text-to-speech on your own machine
 
 Usage
   kelados speak "Hello world" [-v af_heart] [-s 1.0] [-o out.wav]
   kelados speak -f chapter.txt -o chapter.wav
+  kelados say "Build finished"            Speak out loud instead of saving a file
   kelados voices
+  kelados mcp                              MCP server for Claude Code and other agents
   kelados serve [--port 8880] [--host 127.0.0.1] [--key secret]
 
 Options
@@ -34,6 +38,10 @@ const { values: o, positionals: [cmd, ...rest] } = parseArgs({
 
 if (!cmd || o.help) { console.log(HELP); process.exit(0); }
 
+if (cmd === "mcp") {
+  runMcp(() => createKelados({ dtype: o.dtype }));
+} else {
+
 let lastPct = -1;
 const onProgress = (p) => {
   if (p.status === "progress" && p.file?.endsWith(".onnx")) {
@@ -43,6 +51,7 @@ const onProgress = (p) => {
 };
 
 try {
+  if (!["voices", "speak", "say", "serve"].includes(cmd)) { console.log(HELP); process.exit(1); }
   const client = await createKelados({ dtype: o.dtype, onProgress });
   process.stderr.write("\r");
 
@@ -55,16 +64,20 @@ try {
     const clip = await client.speak(text, { voice: o.voice, preset: o.preset, speed: o.speed && Number(o.speed) });
     await clip.save(o.out);
     console.log(`Saved ${o.out}: ${clip.duration.toFixed(1)}s of audio in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
+  } else if (cmd === "say") {
+    const text = o.file ? await readFile(o.file, "utf8") : rest.join(" ");
+    if (!text.trim()) throw new Error("Nothing to say. Pass text or -f file.txt");
+    const clip = await client.speak(text, { voice: o.voice, preset: o.preset, speed: o.speed && Number(o.speed) });
+    await playWav(clip.toWav());
   } else if (cmd === "serve") {
     await serve(client, { port: Number(o.port), host: o.host, key: o.key });
     console.log(`Kelados server on http://${o.host}:${o.port}
   Speech      POST /v1/audio/speech            { "input": "...", "voice": "af_heart" }
   TTS         POST /v1/text-to-speech/:voice   { "text": "..." }
   Voices      GET  /v1/voices`);
-  } else {
-    console.log(HELP); process.exit(1);
   }
 } catch (e) {
   console.error(`\nError: ${e.message}`);
   process.exit(1);
+}
 }

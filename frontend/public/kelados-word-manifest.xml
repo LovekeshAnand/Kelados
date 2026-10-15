@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Kelados for Microsoft Word: a task pane that dictates at the cursor and reads text aloud.
+     Self-hosting? Replace https://kelados.lovekeshanand6.workers.dev with your frontend's URL. -->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+  <Id>541ec0ee-3fd9-4fe3-a4e8-1d78e8f70b97</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Kelados</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Kelados" />
+  <Description DefaultValue="Dictate into Word and hear your document read aloud. Speech runs on your own computer: free and private." />
+  <IconUrl DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-80.png" />
+  <SupportUrl DefaultValue="https://kelados.lovekeshanand6.workers.dev/integrations/#word" />
+  <AppDomains>
+    <AppDomain>https://kelados.lovekeshanand6.workers.dev</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Document" />
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://kelados.lovekeshanand6.workers.dev/word/" />
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title" />
+            <Description resid="GetStarted.Description" />
+            <LearnMoreUrl resid="Learn.Url" />
+          </GetStarted>
+          <FunctionFile resid="Taskpane.Url" />
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="Kelados.Group">
+                <Label resid="Group.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16" />
+                  <bt:Image size="32" resid="Icon.32" />
+                  <bt:Image size="80" resid="Icon.80" />
+                </Icon>
+                <Control xsi:type="Button" id="Kelados.Open">
+                  <Label resid="Button.Label" />
+                  <Supertip>
+                    <Title resid="Button.Label" />
+                    <Description resid="Button.Tip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16" />
+                    <bt:Image size="32" resid="Icon.32" />
+                    <bt:Image size="80" resid="Icon.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>KeladosPane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16" DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-16.png" />
+        <bt:Image id="Icon.32" DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-32.png" />
+        <bt:Image id="Icon.80" DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://kelados.lovekeshanand6.workers.dev/word/" />
+        <bt:Url id="Learn.Url" DefaultValue="https://kelados.lovekeshanand6.workers.dev/integrations/#word" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Group.Label" DefaultValue="Kelados" />
+        <bt:String id="Button.Label" DefaultValue="Kelados" />
+        <bt:String id="GetStarted.Title" DefaultValue="Write by speaking" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="Button.Tip" DefaultValue="Dictate at the cursor, or have your document read aloud." />
+        <bt:String id="GetStarted.Description" DefaultValue="Open Home → Kelados, press the mic and talk." />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

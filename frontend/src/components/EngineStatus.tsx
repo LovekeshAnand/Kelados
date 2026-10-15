@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { loadEngine, setDevicePref, useEngine } from "@/lib/tts";
+import { loadEngine, setDevicePref, useEngine } from "@/lib/engine/tts";
 
 /** Model download/readiness bar with a GPU ↔ CPU switch. */
 export function EngineStatus({ autoload = true }: { autoload?: boolean }) {
@@ -13,7 +13,9 @@ export function EngineStatus({ autoload = true }: { autoload?: boolean }) {
         <span className={`size-2 rounded-full ${s.status === "ready" ? "bg-ok" : s.status === "error" ? "bg-danger" : "animate-pulse bg-accent"}`} />
         <span className="text-fg">
           {s.status === "ready" && <>Engine ready <span className="text-muted">· {s.device === "webgpu" ? "WebGPU" : "CPU (WASM)"}</span></>}
-          {s.status === "loading" && <>Loading voice model <span className="text-muted">· {Math.round(s.progress * 100)}%</span></>}
+          {s.status === "loading" && (s.progress >= 0.99
+            ? <>Warming up voice model <span className="text-muted">· a few seconds</span></>
+            : <>Loading voice model <span className="text-muted">· {Math.round(s.progress * 100)}%</span></>)}
           {s.status === "idle" && "Engine idle"}
           {s.status === "error" && <span className="text-danger">Engine error: {s.error}</span>}
         </span>

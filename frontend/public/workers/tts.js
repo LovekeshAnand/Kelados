@@ -26,18 +26,33 @@ async function load(pref) {
       if (p.status === "progress") self.postMessage({ type: "progress", file: p.file, loaded: p.loaded, total: p.total });
     },
   });
+  // The first generation compiles WebGPU shaders (seconds); do it before the user presses play.
+  await tts.generate("Hi.", { voice: "af_heart" });
   return { device, dtype };
 }
 
+// Audio can only start once the first piece is synthesized, so make that piece short:
+// split a long opening sentence at its first comma-like pause.
+function firstPiece(text) {
+  const end = text.search(/[.!?](\s|$)/);
+  const sentence = end < 0 ? text : text.slice(0, end + 1);
+  if (sentence.length < 140) return [text];
+  const pause = sentence.slice(30, 120).search(/[,;:—]\s/);
+  return pause < 0 ? [text] : [text.slice(0, 30 + pause + 1), text.slice(30 + pause + 2)];
+}
+
 async function generate({ id, text, voice, speed }) {
-  // kokoro-js never closes the splitter for plain strings, so hand it a closed stream.
-  const splitter = new TextSplitterStream();
-  splitter.push(text);
-  splitter.close();
-  for await (const { text: sentence, audio } of tts.stream(splitter, { voice, speed })) {
+  for (const piece of firstPiece(text)) {
+    // kokoro-js never closes the splitter for plain strings, so hand it a closed stream.
+    const splitter = new TextSplitterStream();
+    splitter.push(piece);
+    splitter.close();
+    for await (const { text: sentence, audio } of tts.stream(splitter, { voice, speed })) {
+      if (cancelled.has(id)) break;
+      const samples = audio.audio;
+      self.postMessage({ type: "chunk", id, text: sentence, audio: samples, sampleRate: audio.sampling_rate }, [samples.buffer]);
+    }
     if (cancelled.has(id)) break;
-    const samples = audio.audio;
-    self.postMessage({ type: "chunk", id, text: sentence, audio: samples, sampleRate: audio.sampling_rate }, [samples.buffer]);
   }
   cancelled.delete(id);
   self.postMessage({ type: "done", id });

@@ -1,4 +1,4 @@
-import { createApp } from "./api.js";
+import { createApp } from "./app.js";
+import { env } from "./config/env.js";
 
-const port = Number(process.env.PORT) || 4000;
-createApp().listen(port, () => console.log(`Kelados API on http://localhost:${port}`));
+createApp().listen(env.port, () => console.log(`Kelados API on http://localhost:${env.port}`));

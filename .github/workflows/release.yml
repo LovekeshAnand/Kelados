@@ -1,0 +1,65 @@
+# Push a tag like v1.1.0 to build the desktop app for every OS and attach it, plus the Chrome extension,
+# to a GitHub release. The website's download buttons point at /releases/latest/download/<file>.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci && npm test
+        working-directory: backend
+      - run: npm ci && npm test
+        working-directory: sdk
+      - run: npm ci && npm test && npm run lint
+        working-directory: frontend
+      - run: npm ci && npm test
+        working-directory: desktop
+
+  desktop:
+    needs: test
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci && npm run dist
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false" # unsigned builds; add signing secrets here when you have certificates
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: |
+            desktop/dist/Kelados-Setup.exe
+            desktop/dist/Kelados.dmg
+            desktop/dist/Kelados.AppImage
+          if-no-files-found: ignore
+
+  publish:
+    needs: desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd integrations/chrome-extension && zip -r ../../kelados-chrome.zip . -x README.md
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts, merge-multiple: true }
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            kelados-chrome.zip
+            artifacts/*
+          generate_release_notes: true

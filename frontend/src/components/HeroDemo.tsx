@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { synthesize, useEngine } from "@/lib/tts";
+import { synthesize, useEngine } from "@/lib/engine/tts";
 import { concatAudio, encodeWav } from "@/lib/audio";
 import { VOICES } from "@/lib/voices";
 import { Player } from "./Player";

@@ -1,0 +1,58 @@
+{
+  "name": "kelados-desktop",
+  "productName": "Kelados",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kelados for desktop: press a shortcut, talk, and it types into any app. Speech runs on your machine.",
+  "license": "MIT",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --url=http://localhost:3000",
+    "smoke": "electron . --smoke",
+    "test": "node --test",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "dev.kelados.desktop",
+    "productName": "Kelados",
+    "files": [
+      "main.js",
+      "keys.js",
+      "preload.cjs",
+      "build/tray.png",
+      "build/icon.png"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "artifactName": "Kelados-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    },
+    "mac": {
+      "target": "dmg",
+      "artifactName": "Kelados.${ext}",
+      "category": "public.app-category.productivity",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Kelados listens only while you dictate. Audio never leaves your Mac."
+      }
+    },
+    "linux": {
+      "target": "AppImage",
+      "artifactName": "Kelados.${ext}",
+      "category": "Utility"
+    },
+    "publish": null
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3"
+  }
+}

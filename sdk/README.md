@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/your-org/kelados/main/.github/banner.png" alt="Kelados" width="100%" />
+  <img src="https://raw.githubusercontent.com/LovekeshAnand/Kelados/main/.github/banner.png" alt="Kelados" width="100%" />
 </p>
 
 <h1 align="center">kelados</h1>
@@ -110,8 +110,10 @@ applyLexicon("Kelados is fast", [{ from: "Kelados", to: "keh-lah-dos" }]);
 npx kelados speak "The quick brown fox jumps over the lazy dog" -v am_fenrir -o fox.wav
 npx kelados speak -f chapter-01.txt -v bf_emma -s 0.95 -o chapter-01.wav
 npx kelados speak "Using my saved preset" -p Narrator          # needs KELADOS_API_KEY
+npx kelados say "Your build finished"                            # play through the speakers
 npx kelados voices
 npx kelados serve --port 8880 --key my-secret
+npx kelados mcp                                                  # MCP server over stdio
 ```
 
 | Flag | Description |
@@ -124,6 +126,23 @@ npx kelados serve --port 8880 --key my-secret
 | `--dtype` | Model precision (default `q8`) |
 | `--port`, `--host` | Server bind address (default `127.0.0.1:8880`) |
 | `--key` | Require this bearer key on the server |
+
+## MCP server (Claude Code and other agents)
+
+```bash
+claude mcp add kelados -- npx -y kelados mcp
+```
+
+Any MCP client can launch `kelados mcp` over stdio. Tools:
+
+| Tool | Arguments | Does |
+|---|---|---|
+| `speak` | `text`, `voice?`, `speed?` | Plays speech on the user's speakers |
+| `save_speech` | `text`, `path`, `voice?`, `speed?` | Writes a WAV file |
+| `list_voices` | none | Lists voice ids |
+
+The model loads on the first tool call, so the handshake is instant. Playback uses the OS player (PowerShell `SoundPlayer`,
+`afplay`, or `paplay`/`aplay`/`ffplay`), with no native dependencies.
 
 ## Drop-in API server
 

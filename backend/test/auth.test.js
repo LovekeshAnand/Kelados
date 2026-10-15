@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { newApiKey, sha256, KEY_PREFIX, hashPassword, verifyPassword } from "../src/auth.js";
+import { newApiKey, sha256, KEY_PREFIX, hashPassword, verifyPassword } from "../src/utils/security.js";
 
 test("api keys are prefixed, unique, and only their hash is kept", () => {
   const a = newApiKey(), b = newApiKey();
