@@ -12,7 +12,7 @@ export function pageMeta({ path, title, description, social }: { path: string; t
     description,
     alternates: { canonical: path },
     openGraph: { title: t, description, url: path, type: "website", siteName: "Kelados", images: [{ url: "/og.png", width: 1200, height: 630, alt: "Kelados" }] },
-    twitter: { card: "summary_large_image", title: t, description, images: ["/og.png"] },
+    twitter: { card: "summary_large_image", title: t, description, images: ["/og-x.jpg"] },
   };
 }
 

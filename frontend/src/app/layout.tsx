@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Kelados – Speak. It's Written.",
     description: "Free, private voice dictation, notetaking and text-to-speech. Open source.",
-    images: ["/og.png"],
+    images: ["/og-x.jpg"],
   },
 };
 
