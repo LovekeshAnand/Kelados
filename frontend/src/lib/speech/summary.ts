@@ -13,7 +13,9 @@ const ACTION = /\b(I'll|I will|we'll|we will|you'll|need to|needs to|have to|has
 const DECISION = /\b(decided|decision|agreed|agree on|we'll go with|going with|settled on|approved|final answer|let's go with)\b/i;
 
 export function sentences(text: string) {
-  return text.replace(/\s+/g, " ").match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map((s) => s.trim()).filter((s) => s.split(" ").length >= 3) ?? [];
+  // Line breaks end a sentence too: list items and headings in dictated notes have no full stop.
+  return text.split(/\n+/).flatMap((line) => line.replace(/\s+/g, " ").match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [])
+    .map((s) => s.trim().replace(/^-\s*/, "")).filter((s) => s.split(" ").length >= 3);
 }
 
 const words = (s: string) => s.toLowerCase().match(/[a-z][a-z'-]+/g)?.filter((w) => w.length > 2 && !STOP.has(w)) ?? [];

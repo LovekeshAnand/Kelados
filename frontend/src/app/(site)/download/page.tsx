@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GITHUB_URL } from "@/components/Footer";
+import { DownloadPanel } from "@/components/DownloadPanel";
 import { btn, card, Kicker } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -8,13 +8,6 @@ export const metadata: Metadata = {
   description: "Free voice dictation for Windows, macOS and Linux. Press a shortcut, talk, and Kelados types into any app: Slack, VS Code, Word, your terminal or Claude Code.",
   openGraph: { title: "Kelados for Desktop", url: "/download/" },
 };
-
-const LATEST = `${GITHUB_URL}/releases/latest/download`;
-const BUILDS = [
-  ["Windows", "Windows 10 and 11 · 64-bit", `${LATEST}/Kelados-Setup.exe`],
-  ["macOS", "Apple silicon and Intel", `${LATEST}/Kelados.dmg`],
-  ["Linux", "AppImage · x64", `${LATEST}/Kelados.AppImage`],
-] as const;
 
 const STEPS = [
   ["01", "Install and open", "Kelados sits in your system tray. The first launch downloads the speech model once (about a minute)."],
@@ -45,20 +38,7 @@ export default function DownloadPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-14 md:px-8">
-        <div className="grid gap-4 md:grid-cols-3">
-          {BUILDS.map(([os, note, href]) => (
-            <div key={os} className={`${card} p-6`}>
-              <h2 className="display text-4xl">{os}</h2>
-              <p className="mt-1 text-sm text-muted">{note}</p>
-              <a href={href} className={`${btn("primary", "md")} mt-6 w-full`}>Download for {os}</a>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 text-xs text-subtle">
-          Builds are published on <a href={`${GITHUB_URL}/releases`} className="text-accent hover:underline">GitHub Releases</a>.
-          On macOS, allow Kelados under System Settings → Privacy &amp; Security → Accessibility so it can type for you.
-          On Linux, install <code className="font-mono">xdotool</code>. Or build it yourself: <code className="font-mono">cd desktop &amp;&amp; npm install &amp;&amp; npm run dist</code>.
-        </p>
+        <DownloadPanel />
 
         <div className="mt-16 grid gap-10 md:grid-cols-3">
           {STEPS.map(([n, title, body]) => (

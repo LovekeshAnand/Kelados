@@ -55,8 +55,8 @@ export function createVad(opts: VadOptions, ev: VadEvents) {
 
   const end = () => {
     if (speechMs >= minSpeechMs) {
-      // Keep ~200 ms of trailing silence; models end sentences better with a little air.
-      const trim = Math.max(0, Math.round(((silentMs - 200) / 1000) * RATE));
+      // Keep ~450 ms of the "silence": quiet word endings (the t in "start") fall under the threshold too.
+      const trim = Math.max(0, Math.round(((silentMs - 450) / 1000) * RATE));
       const audio = concat(buf);
       const cut = audio.subarray(0, Math.max(0, audio.length - trim));
       ev.onSegment({ audio: cut, start: segStart / RATE, end: (segStart + cut.length) / RATE });

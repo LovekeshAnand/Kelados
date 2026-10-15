@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "private": true,
   "description": "Kelados for desktop: press a shortcut, talk, and it types into any app. Speech runs on your machine.",
+  "author": "Kelados",
+  "homepage": "https://kelados.lovekeshanand6.workers.dev",
   "license": "MIT",
   "type": "module",
   "main": "main.js",
@@ -37,7 +39,14 @@
       "perMachine": false
     },
     "mac": {
-      "target": "dmg",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
       "artifactName": "Kelados.${ext}",
       "category": "public.app-category.productivity",
       "extendInfo": {
@@ -45,7 +54,14 @@
       }
     },
     "linux": {
-      "target": "AppImage",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "artifactName": "Kelados.${ext}",
       "category": "Utility"
     },

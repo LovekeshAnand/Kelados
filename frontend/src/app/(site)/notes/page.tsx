@@ -26,16 +26,17 @@ function Notes() {
 
   return (
     <div className="space-y-6">
-      <Link href="/notes/?new" className={btn("primary", "lg")}>Start a new note</Link>
+      <Link href="/notes/?new" className={btn("primary", "lg")}>New meeting or note</Link>
       {notes === null ? <Spinner /> : notes.length === 0 ? (
         <p className="text-sm text-subtle">No notes yet. They&apos;re stored in this browser only.</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((n) => (
             <Link key={n.id} href={`/notes/?id=${n.id}`} className={`${card} group p-5 transition-colors hover:border-accent/40`}>
-              <p className="display truncate text-xl group-hover:text-accent">{n.title}</p>
+              <p className="label text-[10px] text-accent">{n.kind === "personal" ? "My note" : "Meeting"}</p>
+              <p className="display mt-1 truncate text-xl group-hover:text-accent">{n.title}</p>
               <p className="mt-1 font-mono text-[11px] text-subtle">{new Date(n.createdAt).toLocaleDateString()} · {clock(n.duration)} · {n.lines.length} lines</p>
-              <p className="mt-3 line-clamp-3 text-sm text-muted">{n.lines.slice(0, 4).map((l) => l.text).join(" ") || "Empty"}</p>
+              <p className="mt-3 line-clamp-3 text-sm text-muted">{(n.kind === "personal" ? n.scratch : n.lines.slice(0, 4).map((l) => l.text).join(" ")) || "Empty"}</p>
             </Link>
           ))}
         </div>
@@ -48,8 +49,8 @@ export default function NotesPage() {
   return (
     <>
       <PageHero kicker="Notetaker" title="Meetings," accent="written down.">
-        Live transcripts of your calls, with you and everyone else labelled separately, then highlights, action items and decisions
-        the moment you stop. No bot joins your call and no audio leaves your device.
+        Transcribe a meeting live, with you and everyone else labelled, then get highlights, action items and decisions the moment
+        you stop. Or just talk to write your own notes. No bot joins your call and no audio leaves your device.
       </PageHero>
       <section className="mx-auto max-w-6xl px-5 py-10 md:px-8">
         <Suspense fallback={<Spinner />}><Notes /></Suspense>

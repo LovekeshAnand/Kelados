@@ -14,12 +14,14 @@ export type HistoryItem = {
 export type NoteLine = { id: string; speaker: string; text: string; start: number; end: number };
 export type Note = {
   id: string;
+  /** "meeting": a call transcript with speakers. "personal": your own notes, dictated. Older notes have none (= meeting). */
+  kind?: "meeting" | "personal";
   title: string;
   createdAt: number;
   updatedAt: number;
   duration: number;
   lines: NoteLine[];
-  /** Your own notes typed alongside the transcript. */
+  /** Meeting: side notes typed during the call. Personal: the note itself (dictated and edited). */
   scratch: string;
 };
 

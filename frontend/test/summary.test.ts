@@ -18,6 +18,11 @@ test("summary pulls actions, decisions, questions and on-topic highlights", () =
   assert.ok(!s.highlights.some((h) => h.includes("weather")));
 });
 
+test("line breaks split sentences in dictated notes", () => {
+  const s = summarize("Shopping list\n- Eggs\n- Milk\n\nI need to call the bank tomorrow.");
+  assert.deepEqual(s.actions, ["I need to call the bank tomorrow."]);
+});
+
 test("sentences drop fragments and empty input is safe", () => {
   assert.deepEqual(sentences("Yes. Ok sure. That works for me."), ["That works for me."]);
   assert.deepEqual(summarize("").highlights, []);

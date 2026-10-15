@@ -21,6 +21,12 @@ test("spoken commands", () => {
   assert.equal(c("First paragraph. New paragraph. Second one."), "First paragraph\n\nSecond one.");
 });
 
+test("a phrase may start with a layout command", () => {
+  assert.equal(c("New paragraph. I need to call the bank."), "\n\nI need to call the bank.");
+  assert.equal(c("Bullet point milk."), "\n- Milk.");
+  assert.equal(joinText("- Eggs", c("New paragraph. Next.")), "- Eggs\n\nNext.");
+});
+
 test("corrections and scratch that", () => {
   assert.equal(c("Let's meet at 4pm, no wait, 5pm."), "Let's meet at 5pm.");
   assert.equal(c("Send it to Paris. Sorry, I meant London."), "Send it to London.");
@@ -49,7 +55,7 @@ test("vad cuts speech at silence and keeps preroll", () => {
   vad.flush();
   assert.equal(segs.length, 2);
   assert.ok(Math.abs(segs[0].start - 0.7) < 0.05, `start ${segs[0].start}`);
-  assert.ok(segs[0].end > 2.5 && segs[0].end < 2.8, `end ${segs[0].end}`);
+  assert.ok(segs[0].end > 2.5 && segs[0].end < 3.0, `end ${segs[0].end}`);
   assert.ok(segs[1].start > 3.1 && segs[1].start < 3.5);
 });
 

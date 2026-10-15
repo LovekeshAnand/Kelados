@@ -49,7 +49,7 @@ function applyCorrection(text: string) {
 
 export function tidy(text: string) {
   return text
-    .replace(/^[\s,]+/, "")
+    .replace(/^[ \t,]+/, "") // not newlines: a phrase may start with "new paragraph" or "bullet point"
     .replace(/[ \t]+/g, " ")
     .replace(/ +([,.;:!?])/g, "$1")
     .replace(/([.!?])[.,]+/g, "$1")

@@ -4,7 +4,7 @@ import { btn, card } from "@/components/ui";
 import { download, slug } from "@/lib/audio";
 import { speak } from "@/lib/engine/tts";
 import { notesDb, type Note } from "@/lib/local-db";
-import { noteToMarkdown, touch, transcriptText } from "@/lib/notes";
+import { isPersonal, noteToMarkdown, touch, transcriptText } from "@/lib/notes";
 import { summarize } from "@/lib/speech/summary";
 import { clock, toSrt } from "@/lib/subtitles";
 
@@ -31,25 +31,40 @@ export function NoteView({ initial, onDelete }: { initial: Note; onDelete: () =>
     r.done.catch(() => {}).finally(() => setReading(null));
   };
   const name = slug(note.title);
+  const personal = isPersonal(note);
+  const readNote = () => {
+    if (reading) { reading.stop(); setReading(null); return; }
+    const r = speak(note.scratch.trim() || "This note is empty.");
+    setReading(r);
+    r.done.catch(() => {}).finally(() => setReading(null));
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
       <div className="space-y-4">
         <div className={`${card} p-5`}>
           <input value={note.title} onChange={(e) => save({ title: e.target.value })} className="display w-full bg-transparent text-3xl focus:outline-none" aria-label="Title" />
-          <p className="mt-1 font-mono text-[11px] text-subtle">{new Date(note.createdAt).toLocaleString()} · {clock(note.duration)} · {note.lines.length} lines</p>
+          <p className="mt-1 font-mono text-[11px] text-subtle">
+            {personal ? "My note" : "Meeting"} · {new Date(note.createdAt).toLocaleString()} · {clock(note.duration)}
+            {personal ? ` · ${note.scratch.split(/\s+/).filter(Boolean).length} words` : ` · ${note.lines.length} lines`}
+          </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button className={btn("primary", "sm")} onClick={() => navigator.clipboard.writeText(noteToMarkdown(note))}>Copy markdown</button>
             <button className={btn("secondary", "sm")} onClick={() => download(new Blob([noteToMarkdown(note)]), `${name}.md`)}>.md</button>
-            <button className={btn("secondary", "sm")} onClick={() => download(new Blob([note.lines.map((l) => `${l.speaker}: ${l.text}`).join("\n")]), `${name}.txt`)}>.txt</button>
-            <button className={btn("secondary", "sm")} onClick={() => download(new Blob([toSrt(note.lines.map((l) => ({ text: `${l.speaker}: ${l.text}`, start: l.start, end: l.end })))]), `${name}.srt`)}>.srt</button>
-            <button className={btn("secondary", "sm")} onClick={readSummary}>{reading ? "Stop" : "Listen to summary"}</button>
+            {personal ? <>
+              <button className={btn("secondary", "sm")} onClick={() => download(new Blob([note.scratch]), `${name}.txt`)}>.txt</button>
+              <button className={btn("secondary", "sm")} onClick={readNote}>{reading ? "Stop" : "Read aloud"}</button>
+            </> : <>
+              <button className={btn("secondary", "sm")} onClick={() => download(new Blob([note.lines.map((l) => `${l.speaker}: ${l.text}`).join("\n")]), `${name}.txt`)}>.txt</button>
+              <button className={btn("secondary", "sm")} onClick={() => download(new Blob([toSrt(note.lines.map((l) => ({ text: `${l.speaker}: ${l.text}`, start: l.start, end: l.end })))]), `${name}.srt`)}>.srt</button>
+              <button className={btn("secondary", "sm")} onClick={readSummary}>{reading ? "Stop" : "Listen to summary"}</button>
+            </>}
             <button className={btn("danger", "sm")} onClick={async () => { await notesDb.remove(note.id); onDelete(); }}>Delete</button>
           </div>
         </div>
 
         <div className={`${card} space-y-5 p-5`}>
-          {SECTIONS.map(([k, title]) => summary[k].length > 0 && (
+          {SECTIONS.filter(([k]) => !personal || k === "actions" || k === "questions").map(([k, title]) => summary[k].length > 0 && (
             <section key={k}>
               <h3 className="label text-xs text-accent">{title}</h3>
               <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
@@ -59,14 +74,15 @@ export function NoteView({ initial, onDelete }: { initial: Note; onDelete: () =>
           ))}
           {summary.keywords.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {summary.keywords.map((k) => <button key={k} onClick={() => setQ(k)} className="rounded-sm border border-line px-2 py-0.5 font-mono text-[11px] text-muted hover:border-accent/50 hover:text-accent">{k}</button>)}
+              {summary.keywords.map((k) => <button key={k} onClick={() => !personal && setQ(k)} className="rounded-sm border border-line px-2 py-0.5 font-mono text-[11px] text-muted hover:border-accent/50 hover:text-accent">{k}</button>)}
             </div>
           )}
-          {!summary.highlights.length && <p className="text-sm text-subtle">Not enough speech for a summary yet.</p>}
+          {!personal && !summary.highlights.length && <p className="text-sm text-subtle">Not enough speech for a summary yet.</p>}
+          {personal && !summary.actions.length && !summary.questions.length && <p className="text-sm text-subtle">To-dos and questions in your note will show up here.</p>}
           <p className="text-[11px] leading-relaxed text-subtle">Pulled straight from what was said, on your device, with no AI rewriting, so nothing is invented.</p>
         </div>
 
-        {note.scratch.trim() && (
+        {!personal && note.scratch.trim() && (
           <div className={`${card} p-5`}>
             <h3 className="label text-xs text-accent">Your notes</h3>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted">{note.scratch}</p>
@@ -74,6 +90,12 @@ export function NoteView({ initial, onDelete }: { initial: Note; onDelete: () =>
         )}
       </div>
 
+      {personal ? (
+        <div className={`${card} flex min-h-[60vh] flex-col`}>
+          <textarea value={note.scratch} onChange={(e) => save({ scratch: e.target.value })} aria-label="Note"
+            className="flex-1 resize-none bg-transparent p-5 text-[17px] leading-relaxed focus:outline-none" />
+        </div>
+      ) : (
       <div className={`${card} flex max-h-[80vh] flex-col`}>
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-4">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search transcript"
@@ -96,6 +118,7 @@ export function NoteView({ initial, onDelete }: { initial: Note; onDelete: () =>
           {!lines.length && <p className="text-sm text-subtle">{q ? "No matches." : "No speech was captured."}</p>}
         </div>
       </div>
+      )}
     </div>
   );
 }

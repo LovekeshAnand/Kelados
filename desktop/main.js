@@ -1,6 +1,8 @@
 // Kelados desktop: a tray app with a global shortcut that types what you say into whatever app is focused.
 // The overlay is the website's /desktop/ page, so the desktop app shares the web app's models, cache and settings.
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, screen, session, shell, Tray } from "electron";
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, screen, session, shell, systemPreferences, Tray } from "electron";
+import { existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dispose, typeText, undo } from "./keys.js";
 
@@ -11,7 +13,7 @@ const SHORTCUT = "CommandOrControl+Shift+Space";
 const SMOKE = process.argv.includes("--smoke"); // CI: load the overlay, report, quit
 const asset = (p) => fileURLToPath(new URL(p, import.meta.url));
 
-let overlay, settings, tray, hideTimer;
+let overlay, win, tray, hideTimer;
 let status = "idle";
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -54,12 +56,30 @@ function createOverlay() {
   overlay.loadURL(`${BASE}/desktop/`);
 }
 
-function openSettings() {
-  if (settings && !settings.isDestroyed()) return settings.show();
-  settings = new BrowserWindow({ width: 1100, height: 820, title: "Kelados", backgroundColor: "#050405", autoHideMenuBar: true,
-    icon: asset("./build/icon.png"), webPreferences: { sandbox: true, contextIsolation: true } });
-  lockDown(settings);
-  settings.loadURL(`${BASE}/dictate/`); // same origin → same localStorage, so changes reach the overlay live
+/** One app window for welcome and settings. Same origin as the overlay, so settings changes reach it live. */
+function openWindow(path) {
+  if (!win || win.isDestroyed()) {
+    win = new BrowserWindow({ width: 1100, height: 820, title: "Kelados", backgroundColor: "#050405", autoHideMenuBar: true,
+      icon: asset("./build/icon.png"), webPreferences: { sandbox: true, contextIsolation: true } });
+    lockDown(win);
+  }
+  win.loadURL(`${BASE}${path}`);
+  win.show();
+  win.focus();
+}
+const openWelcome = () => openWindow("/welcome/");
+const openSettings = () => openWindow("/dictate/");
+
+/** First launch: say hello (otherwise the app just vanishes into the tray) and ask macOS for the permissions it needs. */
+async function firstRun() {
+  const flag = join(app.getPath("userData"), "welcomed");
+  if (existsSync(flag)) return;
+  writeFileSync(flag, new Date().toISOString());
+  if (process.platform === "darwin") {
+    await systemPreferences.askForMediaAccess("microphone");
+    systemPreferences.isTrustedAccessibilityClient(true); // opens the Accessibility prompt; needed to type into other apps
+  }
+  openWelcome();
 }
 
 const toggle = () => overlay?.webContents.send("toggle");
@@ -77,6 +97,7 @@ function refreshTray() {
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: status === "idle" ? "Start dictation" : "Stop dictation", accelerator: SHORTCUT, click: toggle },
     { type: "separator" },
+    { label: "How to use Kelados…", click: openWelcome },
     { label: "Settings, snippets & dictionary…", click: openSettings },
     { label: "Open the Kelados website", click: () => shell.openExternal(BASE) },
     { label: "Launch at login", type: "checkbox", checked: app.getLoginItemSettings().openAtLogin,
@@ -98,16 +119,21 @@ app.whenReady().then(() => {
 
   const icon = nativeImage.createFromPath(asset("./build/tray.png"));
   tray = new Tray(icon);
-  tray.on("click", toggle);
+  // Clicking the tray focuses the taskbar, so dictating from here would type into nothing: open the app instead.
+  tray.on("click", openWelcome);
   refreshTray();
 
-  if (!globalShortcut.register(SHORTCUT, toggle)) console.error(`[kelados] ${SHORTCUT} is taken by another app`);
+  if (!globalShortcut.register(SHORTCUT, toggle)) {
+    dialog.showMessageBox({ type: "warning", title: "Kelados", message: "Ctrl+Shift+Space is already used by another app.",
+      detail: "Quit that app (or change its shortcut) and restart Kelados. You can still start dictation from the tray menu." });
+  }
+  firstRun();
 });
 
 ipcMain.on("insert", (e, text) => { if (fromUs(e) && text) typeText(text); });
 ipcMain.on("undo", (e) => { if (fromUs(e)) undo(); });
 ipcMain.on("status", (e, s) => { if (fromUs(e) && !SMOKE) setStatus(s); });
 
-app.on("second-instance", openSettings);
+app.on("second-instance", openWelcome); // launching it again (Start menu, Dock) brings the window up
 app.on("window-all-closed", () => {}); // tray app: keep running with no windows
 app.on("will-quit", () => { globalShortcut.unregisterAll(); dispose(); });
