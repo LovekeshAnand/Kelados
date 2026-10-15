@@ -63,13 +63,13 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://kelados.in",
     siteName: "Kelados",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Kelados – speak, it's written" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Kelados – speak, it's written" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Kelados – Speak. It's Written.",
     description: "Free, private voice dictation, notetaking and text-to-speech. Open source.",
-    images: ["/og-image.png"],
+    images: ["/og.png"],
   },
 };
 
