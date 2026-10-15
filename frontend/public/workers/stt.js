@@ -15,6 +15,17 @@ const hasWebGPU = () => (gpu ??= (async () => {
 })());
 
 const isWhisper = (m) => m.includes("whisper");
+
+/** Delete this model's cached weight files that weren't used (older precisions), so storage doesn't pile up. */
+async function pruneCache(model, used) {
+  try {
+    const cache = await caches.open("transformers-cache");
+    for (const req of await cache.keys()) {
+      const url = req.url;
+      if (url.includes(`/${model}/`) && url.endsWith(".onnx") && ![...used].some((f) => url.endsWith(`/${f}`))) await cache.delete(req);
+    }
+  } catch {}
+}
 const isMultilingual = (m) => isWhisper(m) && !m.endsWith(".en");
 
 function load(model) {
@@ -23,13 +34,18 @@ function load(model) {
   const pipe = (async () => {
     if (previous) await (await previous.pipe.catch(() => null))?.dispose?.();
     const webgpu = await hasWebGPU();
+    const used = new Set();
     const asr = await pipeline("automatic-speech-recognition", model, {
       device: webgpu ? "webgpu" : "wasm",
-      dtype: webgpu ? { encoder_model: "fp32", decoder_model_merged: "q4" } : "q8",
+      // Benchmarked on WebGPU: 4-bit encoder+decoder matches fp32 accuracy at ~60% of the download
+      // (Moonshine 98 vs 154 MB, Whisper Base 143 vs 206 MB). fp16 and q8 produce garbage on WebGPU.
+      dtype: webgpu ? { encoder_model: "q4", decoder_model_merged: "q4" } : "q8",
       progress_callback: (p) => {
+        if (p.file) used.add(p.file);
         if (p.status === "progress") self.postMessage({ type: "progress", file: p.file, loaded: p.loaded, total: p.total });
       },
     });
+    pruneCache(model, used);
     // The first run compiles WebGPU shaders and allocates buffers; pay that now, not on the user's first words.
     await asr(new Float32Array(16000), isMultilingual(model) ? { language: "en" } : {});
     self.postMessage({ type: "ready", model, device: webgpu ? "webgpu" : "wasm" });

@@ -13,6 +13,7 @@ type Chunk = { text: string; audio: Float32Array; sampleRate: number };
 type Job = { onChunk?: (c: Chunk) => void; chunks: Chunk[]; resolve: (r: Chunk[]) => void; reject: (e: Error) => void };
 
 const PREF_KEY = "kelados:device";
+export const TTS_MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
 
 let worker: Worker | null = null;
 const serverState: EngineState = { status: "idle", progress: 0, pref: "auto" };

@@ -12,20 +12,35 @@ let loading = null;
 const cancelled = new Set();
 let queue = Promise.resolve();
 
+/** Drop cached weights of the precision we're not using (after a GPU/CPU switch), so only one copy is stored. */
+async function pruneCache(used) {
+  try {
+    const cache = await caches.open("transformers-cache");
+    for (const req of await cache.keys()) {
+      if (req.url.includes(`/${MODEL_ID}/`) && req.url.endsWith(".onnx") && ![...used].some((f) => req.url.endsWith(`/${f}`))) await cache.delete(req);
+    }
+  } catch {}
+}
+
 async function hasWebGPU() {
   try { return !!(navigator.gpu && (await navigator.gpu.requestAdapter())); } catch { return false; }
 }
 
 async function load(pref) {
   const device = pref === "wasm" ? "wasm" : (await hasWebGPU()) ? "webgpu" : "wasm";
+  // Benchmarked: on WebGPU only fp32 is intelligible (fp16 and q8 produce garbled speech), so the GPU path
+  // costs 326 MB; the CPU path uses q8 at 92 MB.
   const dtype = device === "webgpu" ? "fp32" : "q8";
+  const used = new Set();
   tts = await KokoroTTS.from_pretrained(MODEL_ID, {
     dtype,
     device,
     progress_callback: (p) => {
+      if (p.file) used.add(p.file);
       if (p.status === "progress") self.postMessage({ type: "progress", file: p.file, loaded: p.loaded, total: p.total });
     },
   });
+  pruneCache(used);
   // The first generation compiles WebGPU shaders (seconds); do it before the user presses play.
   await tts.generate("Hi.", { voice: "af_heart" });
   return { device, dtype };

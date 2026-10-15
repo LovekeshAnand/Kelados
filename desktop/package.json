@@ -1,7 +1,7 @@
 {
   "name": "kelados-desktop",
   "productName": "Kelados",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Kelados for desktop: press a shortcut, talk, and it types into any app. Speech runs on your machine.",
   "author": "Kelados",
@@ -22,6 +22,7 @@
     "files": [
       "main.js",
       "keys.js",
+      "update.js",
       "preload.cjs",
       "build/tray.png",
       "build/icon.png"

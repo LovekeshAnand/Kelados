@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MicButton } from "@/components/MicButton";
+import { ModelStorage } from "@/components/ModelStorage";
 import { SnippetEditor } from "@/components/SnippetEditor";
 import { SttStatus } from "@/components/SttStatus";
 import { btn, card, LevelDots, PageHero } from "@/components/ui";
@@ -28,6 +29,7 @@ export default function DictatePage() {
   const [reading, setReading] = useState<{ stop: () => void } | null>(null);
   const pieces = useRef<string[]>([]); // what each phrase added, so "scratch that" can remove it
   const { items: snippets } = useSnippets();
+  const inDesktopApp = useSyncExternalStore(() => () => {}, () => /Electron\//.test(navigator.userAgent), () => false);
 
   useEffect(() => {
     dictationsDb.list().then(setHistory).catch(() => {});
@@ -53,6 +55,7 @@ export default function DictatePage() {
   const d = useDictation({
     model: settings.model, language,
     sensitivity: settings.sensitivity, fillers: settings.fillers, commands: settings.commands, snippets, onText,
+    preload: inDesktopApp ? "never" : "cached", // the desktop app's overlay already holds the model in memory
   });
 
   // Hold Space anywhere outside a text field to talk, like a walkie-talkie.
@@ -164,6 +167,11 @@ export default function DictatePage() {
           <div className={`${card} p-5`}>
             <h2 className="label mb-3 text-sm text-accent">Snippets & dictionary</h2>
             <SnippetEditor />
+          </div>
+
+          <div className={`${card} p-5`}>
+            <h2 className="label mb-3 text-sm text-accent">Storage</h2>
+            <ModelStorage />
           </div>
         </aside>
       </section>

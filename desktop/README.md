@@ -18,6 +18,11 @@ main.js ──▶ keys.js: clipboard ← text, OS paste keystroke, clipboard res
 - Typing uses the platform's own tools, with no native modules: a long-lived PowerShell `SendKeys` on Windows, `osascript` on
   macOS (allow Kelados under Privacy & Security → Accessibility), `xdotool` on Linux.
 - Saying "scratch that" sends an undo keystroke to the target app.
+- First launch opens a welcome window (shortcut, a box to try it, macOS permission prompts). Clicking the tray icon reopens it.
+- Models download once into the app's own storage and load from disk on every later launch (about 3 s). Only the
+  overlay holds a model in memory; the welcome and settings windows don't load a second copy.
+- Updates: the UI is the live website, so it is always current. The native shell checks GitHub Releases on launch and
+  daily, then offers the new version from a notification and the tray menu.
 - Security: the bridge only accepts messages from the Kelados origin, windows can't navigate elsewhere, and the
   microphone is only granted to that origin.
 

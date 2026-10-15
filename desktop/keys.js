@@ -26,12 +26,16 @@ export async function press(combo) {
   const cmd = keystroke(process.platform, combo);
   if (process.platform === "win32") {
     if (!ps) {
-      ps = spawn("powershell", ["-NoProfile", "-NoLogo", "-Command", "-"], { stdio: ["pipe", "ignore", "ignore"] });
-      ps.on("exit", () => { ps = null; });
+      ps = spawn("powershell", ["-NoProfile", "-NoLogo", "-Command", "-"], { stdio: ["pipe", "pipe", "ignore"], windowsHide: true });
+      ps.acks = [];
+      ps.stdout.setEncoding("utf8").on("data", (d) => { for (const _ of d.match(/ok/g) ?? []) ps?.acks.shift()?.(); });
+      ps.on("exit", () => { ps?.acks.forEach((r) => r()); ps = null; });
       ps.stdin.write("Add-Type -AssemblyName System.Windows.Forms\n");
     }
-    ps.stdin.write(cmd + "\n");
-    return;
+    // Wait until PowerShell has actually pressed the keys; otherwise the clipboard is swapped back before the paste.
+    const done = new Promise((r) => ps.acks.push(r));
+    ps.stdin.write(`${cmd}; Write-Output ok\n`);
+    return Promise.race([done, new Promise((r) => setTimeout(r, 3000))]);
   }
   await run(cmd[0], cmd[1]);
 }
@@ -42,12 +46,14 @@ let chain = Promise.resolve();
 export function typeText(text) {
   chain = chain.then(async () => {
     const { clipboard } = await import("electron"); // lazy, so this module also loads in plain-Node tests
-    const saved = { text: clipboard.readText(), html: clipboard.readHTML(), image: clipboard.readImage() };
-    clipboard.writeText(text);
+    // ponytail: restores copied text only (Electron 44's clipboard has no readHTML/readImage); a copied image is replaced.
+    // Awaited because Electron 44's clipboard calls can return promises; harmless where they're synchronous.
+    const saved = await clipboard.readText();
+    await clipboard.writeText(text);
     await press("paste");
     // Give the target app time to read the clipboard before putting the user's content back.
     await new Promise((r) => setTimeout(r, 350));
-    clipboard.write({ text: saved.text, html: saved.html || undefined, image: saved.image.isEmpty() ? undefined : saved.image });
+    await clipboard.writeText(typeof saved === "string" ? saved : "");
   }).catch((e) => console.error("[kelados] type failed:", e.message));
   return chain;
 }

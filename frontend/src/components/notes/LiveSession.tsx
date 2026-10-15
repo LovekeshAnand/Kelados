@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { SttStatus } from "@/components/SttStatus";
 import { btn, card, LevelDots } from "@/components/ui";
 import { micStream, startLive, type LiveSession as Live } from "@/lib/engine/live";
-import { loadStt, STT_MODELS, useStt } from "@/lib/engine/stt";
+import { STT_MODELS, useStt, warmStt } from "@/lib/engine/stt";
 import { notesDb, type Note, type NoteLine } from "@/lib/local-db";
 import { addLine, newNote, stopwatch, touch, type NoteKind } from "@/lib/notes";
 import { cleanup, joinText } from "@/lib/speech/cleanup";
@@ -45,7 +45,7 @@ export function LiveSession({ onDone }: { onDone: (id: string) => void }) {
   const end = useRef<HTMLDivElement>(null);
   const personal = kind === "personal";
 
-  useEffect(() => { loadStt(model); }, [model]);
+  useEffect(() => { warmStt(model); }, [model]);
   useEffect(() => {
     if (!running) return;
     const t = setInterval(() => {

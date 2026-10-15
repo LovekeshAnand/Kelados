@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { micStream, startLive, type LiveSession } from "@/lib/engine/live";
-import { loadStt } from "@/lib/engine/stt";
+import { loadStt, warmStt } from "@/lib/engine/stt";
 import { cleanup, type CleanupOptions } from "./cleanup";
 
 export type DictationStatus = "idle" | "starting" | "listening" | "finishing";
@@ -10,6 +10,8 @@ export type DictationOptions = CleanupOptions & {
   model: string;
   language?: string | null;
   sensitivity?: number;
+  /** "cached" (default): warm the model on open only if it's already downloaded. "always": download now. "never": wait for the mic. */
+  preload?: "cached" | "always" | "never";
   /** A cleaned phrase is ready. `undoPrevious` means the user said "scratch that". */
   onText: (text: string, undoPrevious: boolean) => void;
 };
@@ -24,8 +26,11 @@ export function useDictation(o: DictationOptions) {
   const opts = useRef(o);
   useLayoutEffect(() => { opts.current = o; });
 
-  // Warm the model as soon as the page opens, so the first press is instant.
-  useEffect(() => { loadStt(o.model); }, [o.model]);
+  // Warm the model when the page opens so the first press is instant, without downloading anything unasked.
+  useEffect(() => {
+    if (o.preload === "always") loadStt(o.model);
+    else if (o.preload !== "never") warmStt(o.model);
+  }, [o.model, o.preload]);
 
   const start = useCallback(async () => {
     if (session.current) return;

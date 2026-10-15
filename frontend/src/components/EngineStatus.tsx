@@ -1,11 +1,15 @@
 "use client";
 import { useEffect } from "react";
-import { loadEngine, setDevicePref, useEngine } from "@/lib/engine/tts";
+import { hasModel } from "@/lib/engine/cache";
+import { loadEngine, setDevicePref, TTS_MODEL, useEngine } from "@/lib/engine/tts";
 
 /** Model download/readiness bar with a GPU ↔ CPU switch. */
 export function EngineStatus({ autoload = true }: { autoload?: boolean }) {
   const s = useEngine();
-  useEffect(() => { if (autoload && s.status === "idle") loadEngine().catch(() => {}); }, [autoload, s.status]);
+  // Warm from disk if the voice model is already here; a first download waits for the first Generate.
+  useEffect(() => {
+    if (autoload && s.status === "idle") hasModel(TTS_MODEL).then((cached) => { if (cached) loadEngine().catch(() => {}); });
+  }, [autoload, s.status]);
 
   return (
     <div className="rounded-xl border border-line bg-surface px-4 py-3">
@@ -16,7 +20,7 @@ export function EngineStatus({ autoload = true }: { autoload?: boolean }) {
           {s.status === "loading" && (s.progress >= 0.99
             ? <>Warming up voice model <span className="text-muted">· a few seconds</span></>
             : <>Loading voice model <span className="text-muted">· {Math.round(s.progress * 100)}%</span></>)}
-          {s.status === "idle" && "Engine idle"}
+          {s.status === "idle" && <>Voice model not loaded <span className="text-muted">· downloads once when you first generate, then stays on this device</span></>}
           {s.status === "error" && <span className="text-danger">Engine error: {s.error}</span>}
         </span>
         {s.status === "error" && <button className="text-sm text-accent hover:underline" onClick={() => setDevicePref("wasm")}>Retry on CPU</button>}
@@ -35,7 +39,7 @@ export function EngineStatus({ autoload = true }: { autoload?: boolean }) {
         </div>
       )}
       <p className="mt-2 text-xs text-subtle">
-        Runs entirely on your device. The model downloads once ({s.pref === "wasm" ? "~90 MB" : "~90–330 MB"}) and is cached after that.
+        Runs entirely on your device. The voice model downloads once and stays: 326 MB for GPU, or 92 MB with &ldquo;CPU only&rdquo; (smaller download, slower on long texts).
       </p>
     </div>
   );

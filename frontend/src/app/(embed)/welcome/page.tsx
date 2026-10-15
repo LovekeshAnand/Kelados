@@ -1,13 +1,10 @@
 "use client";
-// Opened by the desktop app on first launch and from its tray icon. It also starts the model download right away,
-// so the first real dictation is instant.
+// Opened by the desktop app on first launch and from its tray icon. The overlay process owns the model, so this
+// window doesn't load a second copy into memory.
 import Link from "next/link";
-import { useEffect, useSyncExternalStore } from "react";
-import { SttStatus } from "@/components/SttStatus";
+import { useSyncExternalStore } from "react";
 import { card } from "@/components/ui";
 import { Wordmark } from "@/components/Wordmark";
-import { loadStt } from "@/lib/engine/stt";
-import { useDictateSettings } from "@/lib/speech/settings";
 
 const isMac = () => /Mac/i.test(navigator.platform);
 const noop = () => () => {};
@@ -25,8 +22,6 @@ const TIPS = [
 
 export default function Welcome() {
   const mac = useSyncExternalStore(noop, isMac, () => false);
-  const { settings } = useDictateSettings();
-  useEffect(() => { loadStt(settings.model); }, [settings.model]);
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
@@ -50,7 +45,7 @@ export default function Welcome() {
           <p className="mt-1 text-sm text-muted">Click in the box, press the shortcut, say &ldquo;Hello Kelados, this is my first dictation&rdquo;, pause, then press it again.</p>
           <textarea autoFocus rows={4} placeholder="Your words will be typed here…"
             className="mt-4 w-full resize-none rounded-sm border border-line bg-bg p-4 text-[17px] leading-relaxed placeholder:text-subtle focus:border-accent/50 focus:outline-none" />
-          <div className="mt-3"><SttStatus /></div>
+          <p className="mt-3 text-xs text-subtle">The first time, Kelados downloads its speech model (a progress pill appears at the bottom of your screen). It stays on this computer, so every launch after that is instant.</p>
         </div>
 
         {mac && (

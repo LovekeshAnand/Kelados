@@ -1,10 +1,11 @@
 // Kelados desktop: a tray app with a global shortcut that types what you say into whatever app is focused.
 // The overlay is the website's /desktop/ page, so the desktop app shares the web app's models, cache and settings.
-import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, screen, session, shell, systemPreferences, Tray } from "electron";
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, session, shell, systemPreferences, Tray } from "electron";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dispose, typeText, undo } from "./keys.js";
+import { latestIfNewer } from "./update.js";
 
 const urlArg = process.argv.find((a) => a.startsWith("--url="))?.slice(6); // `npm run dev` points at localhost
 const BASE = (urlArg || process.env.KELADOS_URL || "https://kelados.lovekeshanand6.workers.dev").replace(/\/$/, "");
@@ -15,8 +16,12 @@ const asset = (p) => fileURLToPath(new URL(p, import.meta.url));
 
 let overlay, win, tray, hideTimer;
 let status = "idle";
+let update = null; // newer release tag, once found
 
-if (!app.requestSingleInstanceLock()) app.quit();
+// Windows only shows notifications for an app ID that matches the installer's shortcut (build.appId).
+if (process.platform === "win32") app.setAppUserModelId("dev.kelados.desktop");
+// A second launch only wakes the running app (see "second-instance") and exits before creating anything.
+if (!app.requestSingleInstanceLock()) app.exit(0);
 
 const fromUs = (e) => { try { return new URL(e.senderFrame.url).origin === ORIGIN; } catch { return false; } };
 
@@ -95,6 +100,7 @@ function setStatus(s) {
 function refreshTray() {
   tray.setToolTip(status === "listening" ? "Kelados · listening" : "Kelados · Ctrl+Shift+Space to dictate");
   tray.setContextMenu(Menu.buildFromTemplate([
+    ...(update ? [{ label: `Update available: ${update}…`, click: () => shell.openExternal(`${BASE}/download/`) }, { type: "separator" }] : []),
     { label: status === "idle" ? "Start dictation" : "Stop dictation", accelerator: SHORTCUT, click: toggle },
     { type: "separator" },
     { label: "How to use Kelados…", click: openWelcome },
@@ -128,7 +134,21 @@ app.whenReady().then(() => {
       detail: "Quit that app (or change its shortcut) and restart Kelados. You can still start dictation from the tray menu." });
   }
   firstRun();
+  setTimeout(checkForUpdate, 15_000);
+  setInterval(checkForUpdate, 24 * 3600_000);
 });
+
+async function checkForUpdate() {
+  const tag = await latestIfNewer(app.getVersion());
+  if (!tag || tag === update) return;
+  update = tag;
+  refreshTray();
+  if (Notification.isSupported()) {
+    const n = new Notification({ title: "Kelados update available", body: `${tag} is ready. Click to download it.` });
+    n.on("click", () => shell.openExternal(`${BASE}/download/`));
+    n.show();
+  }
+}
 
 ipcMain.on("insert", (e, text) => { if (fromUs(e) && text) typeText(text); });
 ipcMain.on("undo", (e) => { if (fromUs(e)) undo(); });

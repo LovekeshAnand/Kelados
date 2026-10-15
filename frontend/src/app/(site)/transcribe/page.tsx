@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { SttStatus } from "@/components/SttStatus";
 import { btn, card, PageHero, Spinner } from "@/components/ui";
 import { decodeToMono, download } from "@/lib/audio";
-import { FILE_MODEL, loadStt, STT_MODELS, sttModel, transcribe } from "@/lib/engine/stt";
+import { FILE_MODEL, STT_MODELS, sttModel, transcribe, warmStt } from "@/lib/engine/stt";
 import { splitAtSilence } from "@/lib/speech/vad";
 import { clock, toSrt, toVtt, type Cue } from "@/lib/subtitles";
 
@@ -20,8 +20,8 @@ export default function TranscribePage() {
   const cancelled = useRef(false);
   const m = sttModel(model);
 
-  // Start the download the moment a model is picked, not when Transcribe is pressed.
-  useEffect(() => { loadStt(model); }, [model]);
+  // Warm an already-downloaded model straight away; a new one downloads when Transcribe is pressed.
+  useEffect(() => { warmStt(model); }, [model]);
 
   const run = async (f: Blob) => {
     setBusy(true); setError(""); setCues([]); setProgress(0); setStatus("Decoding audio…");

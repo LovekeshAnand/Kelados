@@ -1,5 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
+import { hasModel } from "./cache";
 import { keepModelCache } from "./tts";
 
 export type SttModel = {
@@ -11,17 +12,26 @@ export type SttModel = {
   timestamps: boolean;
 };
 
+// Download sizes for the precisions the worker picks: 4-bit on WebGPU, 8-bit on CPU.
 export const STT_MODELS: SttModel[] = [
-  { id: "onnx-community/moonshine-base-ONNX", name: "Moonshine Base", note: "English · ~65 MB · fastest live", multilingual: false, timestamps: false },
-  { id: "onnx-community/whisper-tiny.en", name: "Whisper Tiny", note: "English · ~40 MB", multilingual: false, timestamps: true },
-  { id: "onnx-community/whisper-base", name: "Whisper Base", note: "99 languages · ~80 MB", multilingual: true, timestamps: true },
-  { id: "onnx-community/whisper-small", name: "Whisper Small", note: "99 languages · ~250 MB · most accurate", multilingual: true, timestamps: true },
+  { id: "onnx-community/moonshine-base-ONNX", name: "Moonshine Base", note: "English · 60–100 MB · fastest live", multilingual: false, timestamps: false },
+  { id: "onnx-community/whisper-tiny.en", name: "Whisper Tiny", note: "English · 40–100 MB", multilingual: false, timestamps: true },
+  { id: "onnx-community/whisper-base", name: "Whisper Base", note: "99 languages · 80–145 MB", multilingual: true, timestamps: true },
+  { id: "onnx-community/whisper-small", name: "Whisper Small", note: "99 languages · 250–300 MB · most accurate", multilingual: true, timestamps: true },
 ];
 export const LIVE_MODEL = STT_MODELS[0].id;
 export const FILE_MODEL = STT_MODELS[2].id;
 export const sttModel = (id: string) => STT_MODELS.find((m) => m.id === id) ?? STT_MODELS[0];
 
-export type SttState = { status: "idle" | "loading" | "ready" | "error"; progress: number; model?: string; device?: string; error?: string };
+export type SttState = {
+  status: "idle" | "loading" | "ready" | "error";
+  progress: number;
+  model?: string;
+  device?: string;
+  error?: string;
+  /** Weights already on this device: "loading" means reading from disk, not downloading. */
+  cached?: boolean;
+};
 export type TimedChunk = { text: string; timestamp: [number, number | null] };
 export type SttResult = { text: string; chunks: TimedChunk[] };
 export type TranscribeOptions = { model: string; task?: "transcribe" | "translate"; language?: string | null; timestamps?: boolean };
@@ -70,12 +80,23 @@ function boot() {
 
 const getWorker = () => (worker ??= boot());
 
-/** Start downloading and warming a model in the background. */
+/** Download (if needed) and warm a model in the background. */
 export function loadStt(model: string) {
-  if (state.model === model && state.status !== "error") return;
+  if (state.model === model && (state.status === "loading" || state.status === "ready")) return;
   files.clear();
   set({ status: "loading", progress: 0, model, error: undefined });
+  hasModel(model).then((cached) => { if (state.model === model) set({ cached }); });
   getWorker().postMessage({ type: "load", model });
+}
+
+/**
+ * Called when a page opens: warm the model only if it's already on this device (a few seconds, no network).
+ * Otherwise nothing is downloaded until the user actually starts, so browsing the site never costs hundreds of MB.
+ */
+export async function warmStt(model: string) {
+  if (state.model === model && state.status !== "idle") return;
+  if (await hasModel(model)) loadStt(model);
+  else if (state.status !== "loading" && state.status !== "ready") set({ status: "idle", model, cached: false, progress: 0 });
 }
 
 /** True while a transcription is queued or running, so live previews can skip a beat instead of piling up. */

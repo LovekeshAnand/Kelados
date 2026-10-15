@@ -6,6 +6,7 @@ import { DictationPill } from "@/components/DictationPill";
 import { joinText } from "@/lib/speech/cleanup";
 import { useDictateSettings } from "@/lib/speech/settings";
 import { useSnippets } from "@/lib/speech/snippets";
+import { useStt } from "@/lib/engine/stt";
 import { useDictation } from "@/lib/speech/useDictation";
 
 type Bridge = { onToggle(cb: () => void): void; insert(text: string): void; undo(): void; status(s: string): void };
@@ -18,7 +19,7 @@ export default function DesktopOverlay() {
   const typed = useRef(false); // has this session typed anything yet (decides the leading space)
 
   const d = useDictation({
-    model: settings.model, language, sensitivity: settings.sensitivity,
+    model: settings.model, language, sensitivity: settings.sensitivity, preload: "always",
     fillers: settings.fillers, commands: settings.commands, snippets,
     onText: (text, undo) => {
       if (undo) return bridge()?.undo();
@@ -40,12 +41,15 @@ export default function DesktopOverlay() {
     document.body.style.background = "transparent";
     bridge()?.onToggle(() => toggle.current());
   }, []);
-  useEffect(() => { bridge()?.status(d.status); }, [d.status]);
+  // A first-time download is the one moment worth showing the pill unasked, so the user sees progress.
+  const stt = useStt();
+  const downloading = d.status === "idle" && stt.status === "loading" && stt.cached === false;
+  useEffect(() => { bridge()?.status(downloading ? "loading" : d.status); }, [d.status, downloading]);
 
   return (
     <div className="p-2">
       <DictationPill status={d.status} level={d.level} partial={d.partial} last={last} error={d.error}
-        hint="Talk, then pause. Text is typed where your cursor is. Ctrl+Shift+Space to stop." />
+        hint={downloading ? "Downloading the speech model once. It's kept on this computer for next time." : "Talk, then pause. Text is typed where your cursor is. Ctrl+Shift+Space to stop."} />
     </div>
   );
 }

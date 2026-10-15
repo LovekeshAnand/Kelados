@@ -68,7 +68,13 @@ export const historyDb = table<HistoryItem>("history");
 export const notesDb = table<Note>("notes");
 export const dictationsDb = table<Dictation>("dictations");
 
-export const addHistory = historyDb.put;
+// Generated audio is uncompressed WAV (~3 MB a minute), so only the latest clips are kept.
+const HISTORY_LIMIT = 50;
+export async function addHistory(item: HistoryItem) {
+  await historyDb.put(item);
+  const all = await historyDb.list();
+  await Promise.all(all.slice(HISTORY_LIMIT).map((h) => historyDb.remove(h.id)));
+}
 export const deleteHistory = historyDb.remove;
 export const clearHistory = historyDb.clear;
 export const listHistory = historyDb.list;
