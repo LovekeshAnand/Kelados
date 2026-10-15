@@ -223,7 +223,7 @@ cd frontend && npm test && npm run lint && npm run build   # speech logic tests;
 cd desktop  && npm test && npm run smoke
 ```
 
-Push a `v*` tag to build desktop installers for Windows, macOS and Linux plus the Chrome extension zip
+Push a `v*` tag to build desktop installers for Windows and Linux (macOS once notarized) plus the Chrome extension zip
 (`.github/workflows/release.yml`).
 
 ## Roadmap

@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: "Kelados – Speak. It's Written.",
     description: "Free voice dictation, live meeting notes and natural text-to-speech that run on your own device. No limits, no uploads.",
     type: "website",
-    url: "https://kelados.lovekeshanand6.workers.dev",
+    url: "https://kelados.in",
     siteName: "Kelados",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Kelados – speak, it's written" }],
   },

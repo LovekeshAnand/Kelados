@@ -30,7 +30,8 @@ jobs:
     needs: test
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        # macos-latest returns once the app can be notarized (Apple Developer Program).
+        os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +46,6 @@ jobs:
           name: desktop-${{ matrix.os }}
           path: |
             desktop/dist/Kelados-Setup.exe
-            desktop/dist/Kelados.dmg
             desktop/dist/Kelados.AppImage
           if-no-files-found: ignore
 

@@ -12,6 +12,6 @@
     "_execute_action": { "suggested_key": { "default": "Alt+Shift+D" }, "description": "Start or stop dictation in this tab" }
   },
   "externally_connectable": {
-    "matches": ["https://kelados.lovekeshanand6.workers.dev/*", "http://localhost/*"]
+    "matches": ["https://kelados.in/*", "http://localhost/*"]
   }
 }

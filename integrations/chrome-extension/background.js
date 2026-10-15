@@ -3,7 +3,7 @@
 import { insertText } from "./insert.js";
 
 // Self-hosting? Change this and "externally_connectable" in manifest.json.
-const KELADOS = "https://kelados.lovekeshanand6.workers.dev";
+const KELADOS = "https://kelados.in";
 const DEV = "http://localhost:3000"; // `npm run dev` in frontend/
 
 // MV3 workers sleep after ~30 s idle, so the session lives in storage, not a variable.

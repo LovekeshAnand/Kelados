@@ -8,7 +8,7 @@ import { dispose, typeText, undo } from "./keys.js";
 import { latestIfNewer } from "./update.js";
 
 const urlArg = process.argv.find((a) => a.startsWith("--url="))?.slice(6); // `npm run dev` points at localhost
-const BASE = (urlArg || process.env.KELADOS_URL || "https://kelados.lovekeshanand6.workers.dev").replace(/\/$/, "");
+const BASE = (urlArg || process.env.KELADOS_URL || "https://kelados.in").replace(/\/$/, "");
 const ORIGIN = new URL(BASE).origin;
 const SHORTCUT = "CommandOrControl+Shift+Space";
 const SMOKE = process.argv.includes("--smoke"); // CI: load the overlay, report, quit

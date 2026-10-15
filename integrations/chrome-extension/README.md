@@ -11,7 +11,7 @@ Dictate into Google Docs, Gmail, Notion, ChatGPT, claude.ai and any other text b
 
 ## How it works
 
-- `background.js` opens `https://kelados.lovekeshanand6.workers.dev/extension/` in a small popup window. Speech recognition runs there,
+- `background.js` opens `https://kelados.in/extension/` in a small popup window. Speech recognition runs there,
   on your device, with the same models and settings as the website.
 - The page sends each finished phrase to the extension (`externally_connectable`), and `insert.js` is injected into the tab you
   started from to type it at the caret. Google Docs gets a synthetic paste into its hidden input frame.

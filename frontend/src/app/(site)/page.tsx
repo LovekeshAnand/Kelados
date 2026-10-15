@@ -59,7 +59,7 @@ const SCHEMA = appSchema({
   path: "/",
   description: "Free, open-source voice AI that runs on your device: dictation into any app, live meeting notes, transcription in 99 languages and natural text to speech.",
   category: "ProductivityApplication",
-  os: "Web browser, Windows, macOS, Linux",
+  os: "Web browser, Windows, Linux",
   features: ["Voice dictation into any app", "AI meeting notetaker without a bot", "Speech to text in 99 languages with subtitles", "Text to speech with 28 voices", "Chrome extension, Word add-in and Claude Code integration", "On-device processing, nothing uploaded", "No usage limits"],
 });
 

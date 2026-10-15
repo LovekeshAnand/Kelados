@@ -10,23 +10,18 @@ type Release = { tag_name: string; published_at: string; html_url: string; asset
 
 const API = GITHUB_URL.replace("https://github.com/", "https://api.github.com/repos/") + "/releases/latest";
 
-export const BUILDS: Record<Exclude<OS, "mobile">, { label: string; file: string; note: string }> = {
+type Platform = "windows" | "linux";
+// ponytail: macOS is held back until the app can be notarized; the desktop code already supports it (dmg target, permissions).
+export const BUILDS: Record<Platform, { label: string; file: string; note: string }> = {
   windows: { label: "Windows", file: "Kelados-Setup.exe", note: "Windows 10 and 11 · 64-bit" },
-  mac: { label: "macOS", file: "Kelados.dmg", note: "Apple silicon and Intel" },
   linux: { label: "Linux", file: "Kelados.AppImage", note: "AppImage · x64" },
 };
 
-const STEPS: Record<Exclude<OS, "mobile">, React.ReactNode[]> = {
+const STEPS: Record<Platform, React.ReactNode[]> = {
   windows: [
     <>Run <b>Kelados-Setup.exe</b>. It installs for your user only, so no admin rights are needed, and starts by itself.</>,
     <>Windows may show <b>&ldquo;Windows protected your PC&rdquo;</b> because the app isn&apos;t code-signed yet. Click <b>More info → Run anyway</b>.</>,
     <>A welcome window opens. Click in its box, press <b>Ctrl+Shift+Space</b>, and talk.</>,
-  ],
-  mac: [
-    <>Open <b>Kelados.dmg</b> and drag Kelados into <b>Applications</b>.</>,
-    <>The first time, <b>right-click Kelados → Open</b> (it isn&apos;t notarized yet). If macOS says it&apos;s damaged, run <code className="font-mono text-accent">xattr -cr /Applications/Kelados.app</code> in Terminal.</>,
-    <>Allow <b>Microphone</b> and <b>Accessibility</b> when asked. Accessibility lets Kelados type into other apps.</>,
-    <>Press <b>⌘+Shift+Space</b> in any app and talk.</>,
   ],
   linux: [
     <>Make it executable: <code className="font-mono text-accent">chmod +x Kelados.AppImage</code>, then run it.</>,
@@ -48,8 +43,8 @@ const mb = (n: number) => `${Math.round(n / 1e6)} MB`;
 export function DownloadPanel() {
   const os = useSyncExternalStore(noop, detectOS, () => "windows" as OS);
   const [release, setRelease] = useState<Release | null | "none">(null);
-  const [pick, setPick] = useState<Exclude<OS, "mobile"> | null>(null);
-  const target = pick ?? (os === "mobile" ? "windows" : os);
+  const [pick, setPick] = useState<Platform | null>(null);
+  const target: Platform = pick ?? (os === "linux" ? "linux" : "windows");
 
   useEffect(() => {
     fetch(API, { headers: { accept: "application/vnd.github+json" } })
@@ -64,7 +59,13 @@ export function DownloadPanel() {
     <div className="space-y-6">
       {os === "mobile" && (
         <p className="rounded-sm border border-accent/30 bg-accent-soft p-4 text-sm text-accent">
-          The desktop app is for Windows, macOS and Linux. On your phone, <Link href="/dictate/" className="underline">dictate in the browser</Link> instead.
+          The desktop app is for Windows and Linux. On your phone, <Link href="/dictate/" className="underline">dictate in the browser</Link> instead.
+        </p>
+      )}
+      {os === "mac" && (
+        <p className="rounded-sm border border-accent/30 bg-accent-soft p-4 text-sm leading-relaxed text-accent">
+          The Mac app is coming soon. Until then, <Link href="/dictate/" className="underline">dictate in the browser</Link> or use the{" "}
+          <Link href="/integrations/#chrome" className="underline">Chrome extension</Link> to talk into Google Docs, Gmail and any website.
         </p>
       )}
 
@@ -72,7 +73,7 @@ export function DownloadPanel() {
         <div className="dots-ramp pointer-events-none absolute inset-0 opacity-40" />
         <div className="relative flex flex-wrap items-center gap-6">
           <div className="min-w-0 grow basis-60">
-            <p className="label text-xs text-accent">{pick ? "Selected" : "Recommended for your computer"}</p>
+            <p className="label text-xs text-accent">{pick || os === "mac" ? "Selected" : "Recommended for your computer"}</p>
             <h2 className="display mt-1 text-5xl">Kelados for {BUILDS[target].label}</h2>
             <p className="mt-2 font-mono text-xs text-muted">
               {BUILDS[target].note}

@@ -5,29 +5,29 @@
 Key facts:
 - Price: free. No subscription, no usage limits. Models run locally, so there is no per-use server cost.
 - Privacy: speech recognition (Moonshine, Whisper) and speech generation (Kokoro-82M) run in the browser via WebGPU/WebAssembly, or in the desktop app. Audio never leaves the device.
-- Platforms: web (any modern browser), desktop app for Windows, macOS and Linux, Chrome extension, Microsoft Word add-in, Node.js SDK/CLI, MCP server for Claude Code.
+- Platforms: web (any modern browser), desktop app for Windows and Linux (macOS coming soon), Chrome extension, Microsoft Word add-in, Node.js SDK/CLI, MCP server for Claude Code.
 - Account: optional; only used to sync projects, presets, pronunciation rules and dictation snippets, and to issue API keys.
 - Source code: https://github.com/LovekeshAnand/Kelados
 
 ## Products
 
-- [Dictation](https://kelados.lovekeshanand6.workers.dev/dictate/): real-time speech to clean, punctuated text. Removes filler words ("um", "uh"), understands spoken commands ("new line", "bullet point", "comma"), corrections ("4pm, no wait, 5pm" → "5pm") and "scratch that". Snippets and a personal dictionary expand as you speak.
-- [Desktop app](https://kelados.lovekeshanand6.workers.dev/download/): press Ctrl+Shift+Space (⌘+Shift+Space on Mac) in any application, talk, and Kelados types at the cursor. Works in Word, Slack, VS Code, browsers and terminals, including Claude Code. A free alternative to Wispr Flow.
-- [Notetaker](https://kelados.lovekeshanand6.workers.dev/notes/): live transcripts of Google Meet, Zoom and Teams calls without a bot joining. Your microphone is labelled "You", the shared meeting tab "Others". Produces highlights, action items, decisions and open questions; exports Markdown, TXT, SRT. Also a "my own notes" mode for dictated notes. A free alternative to Otter.ai.
-- [Transcribe](https://kelados.lovekeshanand6.workers.dev/transcribe/): transcribe audio and video files in 99 languages or translate them to English, with SRT/VTT subtitle export. Any file length.
-- [Speech Studio](https://kelados.lovekeshanand6.workers.dev/studio/): unlimited text to speech with 28 American and British English voices, streaming playback and WAV export. A free alternative to ElevenLabs for English narration (no voice cloning).
-- [Projects](https://kelados.lovekeshanand6.workers.dev/projects/): multi-voice audiobooks, podcasts and voiceovers exported as one WAV.
-- [Voice library](https://kelados.lovekeshanand6.workers.dev/voices/): previews of all 28 voices.
-- [Integrations](https://kelados.lovekeshanand6.workers.dev/integrations/): Chrome extension (Google Docs, Gmail, any text box; Alt+Shift+D), Word add-in, Claude Code.
-- [Compare](https://kelados.lovekeshanand6.workers.dev/compare/): Kelados vs Wispr Flow, Otter.ai and ElevenLabs.
+- [Dictation](https://kelados.in/dictate/): real-time speech to clean, punctuated text. Removes filler words ("um", "uh"), understands spoken commands ("new line", "bullet point", "comma"), corrections ("4pm, no wait, 5pm" → "5pm") and "scratch that". Snippets and a personal dictionary expand as you speak.
+- [Desktop app](https://kelados.in/download/): press Ctrl+Shift+Space in any application (Windows and Linux; Mac coming soon), talk, and Kelados types at the cursor. Works in Word, Slack, VS Code, browsers and terminals, including Claude Code. A free alternative to Wispr Flow.
+- [Notetaker](https://kelados.in/notes/): live transcripts of Google Meet, Zoom and Teams calls without a bot joining. Your microphone is labelled "You", the shared meeting tab "Others". Produces highlights, action items, decisions and open questions; exports Markdown, TXT, SRT. Also a "my own notes" mode for dictated notes. A free alternative to Otter.ai.
+- [Transcribe](https://kelados.in/transcribe/): transcribe audio and video files in 99 languages or translate them to English, with SRT/VTT subtitle export. Any file length.
+- [Speech Studio](https://kelados.in/studio/): unlimited text to speech with 28 American and British English voices, streaming playback and WAV export. A free alternative to ElevenLabs for English narration (no voice cloning).
+- [Projects](https://kelados.in/projects/): multi-voice audiobooks, podcasts and voiceovers exported as one WAV.
+- [Voice library](https://kelados.in/voices/): previews of all 28 voices.
+- [Integrations](https://kelados.in/integrations/): Chrome extension (Google Docs, Gmail, any text box; Alt+Shift+D), Word add-in, Claude Code.
+- [Compare](https://kelados.in/compare/): Kelados vs Wispr Flow, Otter.ai and ElevenLabs.
 
 ## Developers
 
-- [Developer docs](https://kelados.lovekeshanand6.workers.dev/developers/): `npm install kelados`. Node SDK (`createKelados().speak(text, { voice })`), CLI (`npx kelados speak "text" -o out.wav`, `npx kelados say "text"`), a self-hosted HTTP server compatible with common TTS request formats (`npx kelados serve`), and an MCP server.
+- [Developer docs](https://kelados.in/developers/): `npm install kelados`. Node SDK (`createKelados().speak(text, { voice })`), CLI (`npx kelados speak "text" -o out.wav`, `npx kelados say "text"`), a self-hosted HTTP server compatible with common TTS request formats (`npx kelados serve`), and an MCP server.
 - Claude Code: `claude mcp add kelados -- npx -y kelados mcp` adds tools `speak`, `save_speech` and `list_voices`.
 - npm: https://www.npmjs.com/package/kelados
 
 ## Optional
 
-- [FAQ](https://kelados.lovekeshanand6.workers.dev/#faq)
+- [FAQ](https://kelados.in/#faq)
 - Models: Kokoro-82M (Apache-2.0) by hexgrad; Whisper by OpenAI (MIT); Moonshine by Useful Sensors (MIT); runtime transformers.js by Hugging Face.

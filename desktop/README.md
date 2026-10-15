@@ -37,7 +37,7 @@ npm test
 npm run dist    # installer for this OS in dist/
 ```
 
-Releases are built for Windows, macOS and Linux by `.github/workflows/release.yml` when a `v*` tag is pushed.
+Releases are built for Windows and Linux (macOS is held back until it can be notarized) by `.github/workflows/release.yml` when a `v*` tag is pushed.
 
 ## Known limits
 

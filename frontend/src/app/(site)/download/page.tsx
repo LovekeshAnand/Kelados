@@ -8,18 +8,19 @@ import { appSchema, breadcrumbSchema, pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
   path: "/download/",
-  title: "Free Dictation App for Windows, Mac & Linux",
+  title: "Free Dictation App for Windows & Linux",
   social: "Kelados for Desktop – Free Voice Dictation in Any App",
-  description: "Free desktop dictation app for Windows, macOS and Linux. Press Ctrl+Shift+Space, talk, and Kelados types into any app: Word, Slack, VS Code, terminals and Claude Code. Speech never leaves your computer.",
+  description: "Free desktop dictation app for Windows and Linux (Mac coming soon). Press Ctrl+Shift+Space, talk, and Kelados types into any app: Word, Slack, VS Code, terminals and Claude Code. Speech never leaves your computer.",
 });
 
 const FAQ = [
   ["Is the Kelados desktop app free?", "Yes. Kelados is free and open source (MIT) with no word limits, no subscription and no account. Speech is recognised on your own computer, so there is no server cost to pass on."],
-  ["How do I dictate into any app on Windows or Mac?", "Install Kelados, click where you want to type in any app, press Ctrl+Shift+Space (⌘+Shift+Space on Mac), and talk. Each phrase is typed at your cursor a moment after you pause. Press the shortcut again to stop."],
+  ["How do I dictate into any app on Windows?", "Install Kelados, click where you want to type in any app, press Ctrl+Shift+Space, and talk. Each phrase is typed at your cursor a moment after you pause. Press the shortcut again to stop."],
   ["Does Kelados send my voice to the cloud?", "No. The speech model runs on your computer. Audio is never uploaded, which makes it suitable for confidential work."],
   ["Does it work offline?", "After the first launch downloads the speech model (about 100 MB, once), recognition runs locally. The app loads its interface from the Kelados website, so it needs a connection to start."],
   ["Can I use Kelados with Claude Code or other terminal tools?", "Yes. Focus the terminal, press the shortcut and speak your prompt; Kelados types it in. Kelados also ships an MCP server so Claude Code can talk back."],
   ["Is Kelados a free alternative to Wispr Flow?", "Kelados covers the same core workflow (a global shortcut that turns speech into clean text in any app) for free, with recognition on your device instead of in the cloud."],
+  ["Is there a Kelados app for Mac?", "The Mac app is coming soon, once it can be signed and notarized by Apple. Mac users can already dictate in the browser at kelados.in/dictate and use the Chrome extension in Google Docs, Gmail and any website."],
 ] as const;
 
 const SCHEMA = [
@@ -28,7 +29,7 @@ const SCHEMA = [
     path: "/download/",
     description: "Free voice dictation app that types what you say into any application, with on-device speech recognition.",
     category: "ProductivityApplication",
-    os: "Windows 10, Windows 11, macOS, Linux",
+    os: "Windows 10, Windows 11, Linux",
     features: ["Global dictation shortcut", "Types into any app", "Filler word removal and voice commands", "On-device speech recognition", "Snippets and personal dictionary"],
   }),
   breadcrumbSchema("Download", "/download/"),
@@ -36,7 +37,7 @@ const SCHEMA = [
 
 const STEPS = [
   ["01", "Install and open", "Kelados sits in your system tray. The first launch downloads the speech model once (about a minute)."],
-  ["02", "Press Ctrl+Shift+Space", "Use ⌘+Shift+Space on a Mac. A small pill appears; your cursor stays where it was."],
+  ["02", "Press Ctrl+Shift+Space", "A small pill appears at the bottom of the screen; your cursor stays where it was."],
   ["03", "Talk, then pause", "Each phrase is typed where your cursor is, cleaned up, with fillers removed and snippets expanded. Press the shortcut again to stop."],
 ];
 

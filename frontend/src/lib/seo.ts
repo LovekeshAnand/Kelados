@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE = "https://kelados.lovekeshanand6.workers.dev";
+export const SITE = "https://kelados.in";
 export const GITHUB = "https://github.com/LovekeshAnand/Kelados";
 export const NPM = "https://www.npmjs.com/package/kelados";
 

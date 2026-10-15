@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Kelados for Microsoft Word: a task pane that dictates at the cursor and reads text aloud.
-     Self-hosting? Replace https://kelados.lovekeshanand6.workers.dev with your frontend's URL. -->
+     Self-hosting? Replace https://kelados.in with your frontend's URL. -->
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
@@ -12,17 +12,17 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Kelados" />
   <Description DefaultValue="Dictate into Word and hear your document read aloud. Speech runs on your own computer: free and private." />
-  <IconUrl DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-80.png" />
-  <SupportUrl DefaultValue="https://kelados.lovekeshanand6.workers.dev/integrations/#word" />
+  <IconUrl DefaultValue="https://kelados.in/icons/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://kelados.in/icons/icon-80.png" />
+  <SupportUrl DefaultValue="https://kelados.in/integrations/#word" />
   <AppDomains>
-    <AppDomain>https://kelados.lovekeshanand6.workers.dev</AppDomain>
+    <AppDomain>https://kelados.in</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Document" />
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://kelados.lovekeshanand6.workers.dev/word/" />
+    <SourceLocation DefaultValue="https://kelados.in/word/" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -68,13 +68,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16" DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-16.png" />
-        <bt:Image id="Icon.32" DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-32.png" />
-        <bt:Image id="Icon.80" DefaultValue="https://kelados.lovekeshanand6.workers.dev/icons/icon-80.png" />
+        <bt:Image id="Icon.16" DefaultValue="https://kelados.in/icons/icon-16.png" />
+        <bt:Image id="Icon.32" DefaultValue="https://kelados.in/icons/icon-32.png" />
+        <bt:Image id="Icon.80" DefaultValue="https://kelados.in/icons/icon-80.png" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://kelados.lovekeshanand6.workers.dev/word/" />
-        <bt:Url id="Learn.Url" DefaultValue="https://kelados.lovekeshanand6.workers.dev/integrations/#word" />
+        <bt:Url id="Taskpane.Url" DefaultValue="https://kelados.in/word/" />
+        <bt:Url id="Learn.Url" DefaultValue="https://kelados.in/integrations/#word" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="Kelados" />

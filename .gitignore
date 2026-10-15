@@ -6,3 +6,6 @@ out
 .vercel
 .wrangler
 *.log
+
+# Launch video project (kept local)
+video/

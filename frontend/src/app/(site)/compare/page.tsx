@@ -18,7 +18,7 @@ const ROWS: { vs: string; site: string; kind: string; href: string; rows: [strin
   {
     vs: "Wispr Flow", site: "https://wisprflow.ai", kind: "Voice dictation", href: "/download/",
     rows: [
-      ["Dictate into any app with a shortcut", "Yes (Windows, macOS, Linux)", "Yes"],
+      ["Dictate into any app with a shortcut", "Yes (Windows, Linux; Mac soon)", "Yes"],
       ["Filler removal and spoken corrections", "Yes, rule-based", "Yes, AI rewriting"],
       ["Where speech is processed", "On your device", "Cloud servers"],
       ["Price", "Free, no word limits", "Free tier with limits, paid plans"],
@@ -51,7 +51,7 @@ const ROWS: { vs: string; site: string; kind: string; href: string; rows: [strin
 ];
 
 const FAQ = [
-  ["What is the best free alternative to Wispr Flow?", "Kelados is a free, open-source alternative to Wispr Flow. It gives you a global shortcut (Ctrl+Shift+Space) that types what you say into any app on Windows, macOS and Linux, removes filler words and handles spoken corrections, and processes speech on your device instead of in the cloud."],
+  ["What is the best free alternative to Wispr Flow?", "Kelados is a free, open-source alternative to Wispr Flow. It gives you a global shortcut (Ctrl+Shift+Space) that types what you say into any app on Windows and Linux (Mac coming soon), removes filler words and handles spoken corrections, and processes speech on your device instead of in the cloud."],
   ["Is there a free Otter.ai alternative that doesn't join the meeting?", "Yes. The Kelados notetaker captures your microphone and the audio of the meeting tab you share, so no bot joins your Zoom, Google Meet or Teams call. It produces a live transcript and then highlights, action items and decisions, with no minute limits."],
   ["Is there a free ElevenLabs alternative with no character limit?", "Kelados Speech Studio generates natural English speech with 28 voices and no character limits, because the Kokoro model runs in your browser. It doesn't do voice cloning."],
   ["Why is Kelados free when other voice apps charge?", "Other voice apps run AI models on their servers and charge for the compute. Kelados runs the models on your own device, so there's no per-word or per-minute cost to pass on."],
