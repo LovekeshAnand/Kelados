@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 const TABS = [
-  ["Desktop", "Download the app, then hold Ctrl+Shift+Space in any app and talk."],
+  ["Desktop", "Download the app, then press Ctrl+Shift+Space in any app and talk."],
   ["Terminal", "npm install -g kelados && kelados say \"Hello from Kelados\""],
   ["Claude Code", "claude mcp add kelados -- npx -y kelados mcp"],
 ] as const;
@@ -27,7 +27,7 @@ export function InstallTabs() {
         </div>
         <div className="flex items-center gap-3 px-4 py-3.5 font-mono text-[13px]">
           {isCmd && <span className="text-accent">$</span>}
-          <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-fg">{line}</code>
+          <code className={`min-w-0 flex-1 text-fg ${isCmd ? "overflow-x-auto whitespace-nowrap" : ""}`}>{line}</code>
           {isCmd && (
             <button className="label shrink-0 text-[11px] text-muted hover:text-accent"
               onClick={() => { navigator.clipboard.writeText(line); setCopied(true); }}>{copied ? "Copied" : "Copy"}</button>

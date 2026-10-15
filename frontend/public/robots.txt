@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /dashboard/
-Disallow: /auth/
-
-Sitemap: https://kelados.lovekeshanand6.workers.dev/sitemap.xml

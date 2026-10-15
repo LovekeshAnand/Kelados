@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroDemo } from "@/components/HeroDemo";
 import { InstallTabs } from "@/components/InstallTabs";
 import { LiveStats } from "@/components/LiveStats";
+import { Faq } from "@/components/Faq";
+import { JsonLd } from "@/components/JsonLd";
 import { btn, Kicker } from "@/components/ui";
+import { appSchema } from "@/lib/seo";
 import { VOICES } from "@/lib/voices";
 
 const FEATURES = [
@@ -36,9 +40,33 @@ const COMPARE: [string, string, string][] = [
   ["Source code", "Open (MIT)", "Closed"],
 ];
 
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+// Written as direct answers: these are what search snippets and AI assistants quote.
+const FAQ = [
+  ["What is Kelados?", "Kelados is a free, open-source voice AI app. It does voice dictation into any app, live meeting transcription with notes, file transcription in 99 languages, and natural text to speech with 28 voices. All speech processing runs on your own device."],
+  ["Is Kelados really free?", "Yes. There are no word, minute or character limits and no subscription. Because the AI models run on your computer instead of a server, there is no usage cost to charge for. The code is MIT licensed."],
+  ["Does Kelados upload my voice or audio?", "No. Speech recognition (Moonshine and Whisper) and speech generation (Kokoro) run locally in your browser or the desktop app. Your audio never leaves your device; an account is only needed to sync projects and settings."],
+  ["What is the best free alternative to Wispr Flow?", "Kelados offers the same core workflow as Wispr Flow (press a shortcut, talk, and clean text appears in any app, with filler words removed and spoken corrections understood) for free, with recognition on your device."],
+  ["Can Kelados take meeting notes without a bot joining the call?", "Yes. The Kelados notetaker records your microphone and the audio of the meeting tab you share, so nothing joins your Zoom, Google Meet or Teams call. You get a live transcript, then highlights, action items and decisions."],
+  ["Which languages does Kelados support?", "Live dictation is tuned for English. File transcription supports 99 languages and can translate them into English. Text to speech has American and British English voices."],
+  ["Does Kelados work offline?", "Yes, after the first use. Models download once (about 100 MB for dictation) and are stored on your device, so recognition and speech generation work without an internet connection."],
+  ["Can I use Kelados with Claude Code?", "Yes. Use the desktop app to speak prompts into the terminal, and add the Kelados MCP server (claude mcp add kelados -- npx -y kelados mcp) so Claude Code can talk back."],
+] as const;
+
+const SCHEMA = appSchema({
+  name: "Kelados",
+  path: "/",
+  description: "Free, open-source voice AI that runs on your device: dictation into any app, live meeting notes, transcription in 99 languages and natural text to speech.",
+  category: "ProductivityApplication",
+  os: "Web browser, Windows, macOS, Linux",
+  features: ["Voice dictation into any app", "AI meeting notetaker without a bot", "Speech to text in 99 languages with subtitles", "Text to speech with 28 voices", "Chrome extension, Word add-in and Claude Code integration", "On-device processing, nothing uploaded", "No usage limits"],
+});
+
 export default function Home() {
   return (
     <>
+      <JsonLd data={SCHEMA} />
       <section className="relative overflow-hidden border-b border-line">
         <div className="dots pointer-events-none absolute inset-0" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-12 md:px-8 lg:grid-cols-[1fr_1.05fr] lg:pb-24 lg:pt-20">
@@ -88,7 +116,7 @@ export default function Home() {
               <span className="font-mono text-xs text-subtle">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="display mt-6 text-3xl group-hover:text-accent">{title}</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted">{body}</p>
-              <span className="label mt-6 inline-block text-xs text-accent opacity-0 transition-opacity group-hover:opacity-100">Open →</span>
+              <span className="label mt-6 inline-block text-xs text-accent transition-opacity lg:opacity-0 lg:group-hover:opacity-100">Open →</span>
             </Link>
           ))}
         </div>
@@ -173,6 +201,12 @@ export default function Home() {
 <span className="text-accent">const</span> clip = <span className="text-accent">await</span> tts.speak(<span className="text-fg">&quot;Hello, world&quot;</span>, {"{ voice: "}<span className="text-fg">&quot;af_heart&quot;</span>{" }"});{"\n"}
 <span className="text-accent">await</span> clip.save(<span className="text-fg">&quot;hello.wav&quot;</span>);
         </pre>
+      </section>
+
+      <section id="faq" className="mx-auto max-w-3xl px-5 py-20 md:px-8">
+        <Kicker>FAQ</Kicker>
+        <h2 className="display mt-4 text-5xl">Questions, answered</h2>
+        <div className="mt-8"><Faq items={FAQ} /></div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 md:px-8">

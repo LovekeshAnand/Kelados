@@ -7,7 +7,7 @@ const COLS = [
   ["Product", [["/dictate/", "Dictation"], ["/notes/", "Notetaker"], ["/studio/", "Speech studio"], ["/projects/", "Projects"], ["/transcribe/", "Transcribe files"], ["/voices/", "Voice library"]]],
   ["Apps", [["/download/", "Desktop app"], ["/integrations/#chrome", "Chrome · Google Docs"], ["/integrations/#word", "Microsoft Word"], ["/integrations/#claude-code", "Claude Code"]]],
   ["Developers", [["/developers/", "SDK & CLI"], ["/developers/#server", "Self-hosted API"], ["/developers/#rest", "REST API"], ["/dashboard/?tab=keys", "API keys"]]],
-  ["Project", [[GITHUB_URL, "GitHub"], ["/developers/#faq", "FAQ"], ["https://huggingface.co/hexgrad/Kokoro-82M", "Kokoro model"]]],
+  ["Project", [[GITHUB_URL, "GitHub"], ["/compare/", "Compare"], ["/#faq", "FAQ"], ["https://huggingface.co/hexgrad/Kokoro-82M", "Kokoro model"]]],
 ] as const;
 
 export function Footer() {
@@ -21,6 +21,7 @@ export function Footer() {
             κέλαδος, the sound of many voices. Speak to write, take notes, and give text a voice, on your own device.
           </p>
         </div>
+        <div className="grid grid-cols-2 gap-8 md:contents">
         {COLS.map(([title, links]) => (
           <div key={title}>
             <h3 className="label text-xs text-accent">{title}</h3>
@@ -31,6 +32,7 @@ export function Footer() {
             </ul>
           </div>
         ))}
+        </div>
       </div>
       <div className="relative mx-auto flex max-w-7xl flex-wrap justify-between gap-2 border-t border-line px-5 py-6 font-mono text-[11px] text-subtle md:px-8">
         <span>© {new Date().getFullYear()} Kelados · MIT License</span>

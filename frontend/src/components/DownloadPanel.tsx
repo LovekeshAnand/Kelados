@@ -71,7 +71,7 @@ export function DownloadPanel() {
       <div className={`${card} relative overflow-hidden p-6 md:p-8`}>
         <div className="dots-ramp pointer-events-none absolute inset-0 opacity-40" />
         <div className="relative flex flex-wrap items-center gap-6">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 grow basis-60">
             <p className="label text-xs text-accent">{pick ? "Selected" : "Recommended for your computer"}</p>
             <h2 className="display mt-1 text-5xl">Kelados for {BUILDS[target].label}</h2>
             <p className="mt-2 font-mono text-xs text-muted">

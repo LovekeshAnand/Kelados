@@ -45,7 +45,7 @@ export default function ProjectsPage() {
       <section className="mx-auto max-w-6xl px-5 py-10 md:px-8">
         {ready && !user && (
           <div className={`${card} flex flex-wrap items-center gap-6 p-8`}>
-            <div className="flex-1">
+            <div className="grow basis-60">
               <h2 className="text-lg font-medium">Projects are saved to your free account</h2>
               <p className="mt-1 text-sm text-muted">Sign in to create projects and pick them up on any device.</p>
             </div>

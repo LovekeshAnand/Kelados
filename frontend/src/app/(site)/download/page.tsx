@@ -1,13 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DownloadPanel } from "@/components/DownloadPanel";
+import { Faq } from "@/components/Faq";
+import { JsonLd } from "@/components/JsonLd";
 import { btn, card, Kicker } from "@/components/ui";
+import { appSchema, breadcrumbSchema, pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Download the Desktop App – Dictate Into Any App",
-  description: "Free voice dictation for Windows, macOS and Linux. Press a shortcut, talk, and Kelados types into any app: Slack, VS Code, Word, your terminal or Claude Code.",
-  openGraph: { title: "Kelados for Desktop", url: "/download/" },
-};
+export const metadata: Metadata = pageMeta({
+  path: "/download/",
+  title: "Free Dictation App for Windows, Mac & Linux",
+  social: "Kelados for Desktop – Free Voice Dictation in Any App",
+  description: "Free desktop dictation app for Windows, macOS and Linux. Press Ctrl+Shift+Space, talk, and Kelados types into any app: Word, Slack, VS Code, terminals and Claude Code. Speech never leaves your computer.",
+});
+
+const FAQ = [
+  ["Is the Kelados desktop app free?", "Yes. Kelados is free and open source (MIT) with no word limits, no subscription and no account. Speech is recognised on your own computer, so there is no server cost to pass on."],
+  ["How do I dictate into any app on Windows or Mac?", "Install Kelados, click where you want to type in any app, press Ctrl+Shift+Space (⌘+Shift+Space on Mac), and talk. Each phrase is typed at your cursor a moment after you pause. Press the shortcut again to stop."],
+  ["Does Kelados send my voice to the cloud?", "No. The speech model runs on your computer. Audio is never uploaded, which makes it suitable for confidential work."],
+  ["Does it work offline?", "After the first launch downloads the speech model (about 100 MB, once), recognition runs locally. The app loads its interface from the Kelados website, so it needs a connection to start."],
+  ["Can I use Kelados with Claude Code or other terminal tools?", "Yes. Focus the terminal, press the shortcut and speak your prompt; Kelados types it in. Kelados also ships an MCP server so Claude Code can talk back."],
+  ["Is Kelados a free alternative to Wispr Flow?", "Kelados covers the same core workflow (a global shortcut that turns speech into clean text in any app) for free, with recognition on your device instead of in the cloud."],
+] as const;
+
+const SCHEMA = [
+  appSchema({
+    name: "Kelados Desktop",
+    path: "/download/",
+    description: "Free voice dictation app that types what you say into any application, with on-device speech recognition.",
+    category: "ProductivityApplication",
+    os: "Windows 10, Windows 11, macOS, Linux",
+    features: ["Global dictation shortcut", "Types into any app", "Filler word removal and voice commands", "On-device speech recognition", "Snippets and personal dictionary"],
+  }),
+  breadcrumbSchema("Download", "/download/"),
+];
 
 const STEPS = [
   ["01", "Install and open", "Kelados sits in your system tray. The first launch downloads the speech model once (about a minute)."],
@@ -18,6 +43,7 @@ const STEPS = [
 export default function DownloadPage() {
   return (
     <>
+      {SCHEMA.map((s, i) => <JsonLd key={i} data={s} />)}
       <section className="relative overflow-hidden border-b border-line">
         <div className="dots pointer-events-none absolute inset-0" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 md:px-8 lg:grid-cols-[1.2fr_1fr]">
@@ -57,6 +83,10 @@ export default function DownloadPage() {
           </div>
           <Link href="/integrations/" className={btn("secondary", "md")}>Browser and Word integrations →</Link>
         </div>
+      </section>
+      <section className="mx-auto max-w-3xl px-5 pb-16 md:px-8">
+        <h2 className="display text-4xl">Questions</h2>
+        <div className="mt-6"><Faq items={FAQ} /></div>
       </section>
     </>
   );

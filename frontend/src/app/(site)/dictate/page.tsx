@@ -91,11 +91,11 @@ export default function DictatePage() {
       <section className="mx-auto grid max-w-6xl gap-6 px-5 py-10 md:px-8 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-4">
           <div className={`${card} relative overflow-hidden`}>
-            <div className="flex items-center gap-5 border-b border-line p-5">
+            <div className="flex flex-col items-start gap-5 border-b border-line p-5 sm:flex-row sm:items-center">
               <MicButton status={d.status} level={d.level} onClick={d.toggle} />
               <div className="min-w-0 flex-1 space-y-2">
                 <p className="display text-3xl">
-                  {d.status === "listening" ? "Listening" : d.status === "starting" ? "Starting mic" : d.status === "finishing" ? "Finishing" : "Tap or hold space"}
+                  {d.status === "listening" ? "Listening" : d.status === "starting" ? "Starting mic" : d.status === "finishing" ? "Finishing" : <><span className="sm:hidden">Tap to talk</span><span className="hidden sm:inline">Tap or hold space</span></>}
                 </p>
                 <LevelDots level={d.level} active={d.status === "listening"} />
                 <SttStatus />

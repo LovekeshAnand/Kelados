@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { Faq } from "@/components/Faq";
 import { API_URL } from "@/lib/api";
 import { Badge, btn, PageHero } from "@/components/ui";
 
@@ -44,6 +45,14 @@ const ENDPOINTS: [string, string, string][] = [
   ["GET/PUT", "/api/lexicon", "Read / replace pronunciation rules"],
   ["GET", "/api/stats", "Public counters (no auth)"],
 ];
+
+const DEV_FAQ = [
+            ["Is it really unlimited?", "Yes. Generation happens on your device, so there is no meter to run out. The only limit is how long you're willing to wait."],
+            ["How good are the voices?", "Kokoro-82M ranked #1 on the community TTS Arena at launch, beating models 10-100× its size. The A-grade voices hold up on long-form narration."],
+            ["Which languages?", "Speech: American and British English today. Transcription: 99 languages via Whisper."],
+            ["Can I use the audio commercially?", "Yes. The model is Apache-2.0 and Kelados is MIT. Output is yours."],
+            ["Why do I need an account at all?", "You don't. Accounts only sync projects, presets and pronunciation rules, and issue API keys."],
+          ] as const;
 
 export default function DevelopersPage() {
   return (
@@ -146,18 +155,7 @@ self.onmessage = async ({ data }) => {
         </Section>
 
         <Section id="faq" n="07" title="FAQ">
-          {[
-            ["Is it really unlimited?", "Yes. Generation happens on your device, so there is no meter to run out. The only limit is how long you're willing to wait."],
-            ["How good are the voices?", "Kokoro-82M ranked #1 on the community TTS Arena at launch, beating models 10-100× its size. The A-grade voices hold up on long-form narration."],
-            ["Which languages?", "Speech: American and British English today. Transcription: 99 languages via Whisper."],
-            ["Can I use the audio commercially?", "Yes. The model is Apache-2.0 and Kelados is MIT. Output is yours."],
-            ["Why do I need an account at all?", "You don't. Accounts only sync projects, presets and pronunciation rules, and issue API keys."],
-          ].map(([q, a]) => (
-            <details key={q} className="group rounded-xl border border-line p-4 open:bg-surface">
-              <summary className="cursor-pointer list-none font-medium text-fg">{q}<span className="float-right text-muted transition group-open:rotate-45">+</span></summary>
-              <p className="mt-2 text-sm">{a}</p>
-            </details>
-          ))}
+          <Faq items={DEV_FAQ} />
         </Section>
 
         <Section id="license" n="08" title="Open source">

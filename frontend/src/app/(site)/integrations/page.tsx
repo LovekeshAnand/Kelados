@@ -2,13 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GITHUB_URL } from "@/components/Footer";
+import { Faq } from "@/components/Faq";
+import { JsonLd } from "@/components/JsonLd";
 import { btn, card, Kicker, PageHero } from "@/components/ui";
+import { breadcrumbSchema, pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Integrations – Voice for Google Docs, Word and Claude Code",
-  description: "Dictate into Google Docs and any website with the Chrome extension, write in Microsoft Word by voice, and talk to Claude Code. Free and private.",
-  openGraph: { title: "Kelados Integrations", url: "/integrations/" },
-};
+export const metadata: Metadata = pageMeta({
+  path: "/integrations/",
+  title: "Voice Typing for Google Docs, Word & Claude Code",
+  social: "Kelados Integrations – Dictate Into Google Docs, Word and Claude Code",
+  description: "Free voice typing for Google Docs, Gmail and any website (Chrome extension), Microsoft Word (add-in) and Claude Code (MCP server and desktop dictation). Speech is recognised on your device.",
+});
+
+const FAQ = [
+  ["How do I use voice typing in Google Docs?", "Install the Kelados Chrome extension, click into your document and press Alt+Shift+D. Talk, and each phrase is typed at your cursor with punctuation and filler words removed."],
+  ["Can I dictate in Microsoft Word for free?", "Yes. Add the Kelados Word add-in from its manifest (Insert → Add-ins → Upload My Add-in on the web), then open Home → Kelados. Or use the desktop app, which types into Word directly."],
+  ["How do I talk to Claude Code with my voice?", "Run the Kelados desktop app, focus the terminal running Claude Code and press Ctrl+Shift+Space to speak your prompt. To let Claude speak back, run: claude mcp add kelados -- npx -y kelados mcp."],
+  ["Do the integrations upload my audio?", "No. Every integration uses the same on-device speech recognition as the Kelados website. Audio never leaves your computer."],
+] as const;
 
 const CLAUDE_HOOK = `{
   "hooks": {
@@ -46,6 +57,7 @@ const Code = ({ children }: { children: string }) => (
 export default function IntegrationsPage() {
   return (
     <>
+      <JsonLd data={breadcrumbSchema("Integrations", "/integrations/")} />
       <PageHero kicker="Integrations" title="Write by talking," accent="wherever you work.">
         Kelados plugs into the apps you already write in. Every integration recognises speech on your own device and costs nothing.
       </PageHero>
@@ -98,6 +110,11 @@ export default function IntegrationsPage() {
           </div>}>
           <p>The desktop app is the universal integration. It runs in your tray and types into whatever window is focused.</p>
         </Block>
+
+        <section className="max-w-3xl py-16">
+          <h2 className="display text-4xl">Questions</h2>
+          <div className="mt-6"><Faq items={FAQ} /></div>
+        </section>
       </div>
     </>
   );

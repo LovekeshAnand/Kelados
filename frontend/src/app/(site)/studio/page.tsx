@@ -116,7 +116,7 @@ function Studio() {
           {busy
             ? <button className={btn("secondary", "lg")} onClick={stop}><Spinner /> Stop</button>
             : <button className={btn("primary", "lg")} onClick={generate} disabled={!text.trim()}>Generate speech</button>}
-          <span className="text-xs text-subtle">Ctrl / ⌘ + Enter</span>
+          <span className="hidden text-xs text-subtle sm:inline">Ctrl / ⌘ + Enter</span>
           {busy && (
             <div className="h-1 min-w-40 flex-1 overflow-hidden rounded-full bg-line">
               <div className="h-full bg-accent transition-all" style={{ width: `${progress * 100}%` }} />
@@ -195,5 +195,13 @@ function Studio() {
 }
 
 export default function StudioPage() {
-  return <Suspense><Studio /></Suspense>;
+  // The editor reads ?text= from the URL, so it renders in the browser; this fallback is the static HTML crawlers see.
+  return (
+    <Suspense fallback={
+      <section className="mx-auto max-w-6xl px-5 py-10 md:px-8">
+        <h1 className="text-2xl font-semibold tracking-tight">Speech studio</h1>
+        <p className="mt-1 text-sm text-muted">Unlimited text-to-speech, generated on your device. Audio starts playing while the rest is still generating.</p>
+      </section>
+    }><Studio /></Suspense>
+  );
 }
