@@ -1,8 +1,9 @@
-import type { Metadata, Viewport } from "next";
+  import type { Metadata, Viewport } from "next";
 import { Antonio, Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { JsonLd } from "@/components/JsonLd";
 import { AuthProvider } from "@/lib/api";
+import { THEME_SCRIPT, ThemeSync } from "@/lib/theme";
 import { GITHUB, NPM, SITE } from "@/lib/seo";
 import "./globals.css";
 
@@ -77,8 +78,9 @@ export const viewport: Viewport = { themeColor: "#050405" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${antonio.variable}`}>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${antonio.variable}`} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         {/* Model weights and the ML runtime come from these; open the connections before the first click. */}
         <link rel="preconnect" href="https://huggingface.co" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
@@ -87,6 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <JsonLd data={SITE_SCHEMA} />
       </head>
       <body className="flex min-h-dvh flex-col">
+        <ThemeSync />
         <AuthProvider>{children}</AuthProvider>
 
         {/* Google Analytics — only injected when NEXT_PUBLIC_GA_ID is set */}

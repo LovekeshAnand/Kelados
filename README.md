@@ -40,9 +40,13 @@ Hosted voice platforms charge per character because **their** GPUs generate ever
 
 | | |
 |---|---|
-| **Dictation** | Talk and get clean text in real time. Filler words vanish, spoken commands work ("new line", "bullet point", "question mark"), "scratch that" and "4pm, no wait, 5pm" are understood, and snippets and a personal dictionary expand as you speak. |
+| **Dictation** | Talk and see words appear while you speak. Filler words vanish, spoken commands work ("new line", "bullet point", "question mark"), and mid-sentence corrections are understood ("Friday at 9, no no, Wednesday at 8" keeps only the second). Snippets and a personal dictionary expand as you speak, spoken addresses are written properly ("sam at example dot com" → `sam@example.com`), and Kelados learns the names and terms you use to fix what the model mishears. |
+| **Edit by voice** | Change text that's already typed: "no no, make it Saturday", "change coffee to tea", "make that a bullet list". Say "press enter" or "send it" on its own to press a key instead of typing. |
+| **Hindi and Hinglish** | English on Moonshine; Hinglish (Hindi + English, written in English letters) and Devanagari Hindi on models tuned for Indian speech; 99 languages on Whisper. |
+| **Rewind** | Said something worth keeping before you pressed the shortcut? Ctrl+Alt+R types the last 30 seconds. The audio is held in memory only, never saved or sent. Off by default. |
+| **Read aloud anywhere** | Select text in any app and press Ctrl+Alt+S to hear it. |
 | **Notetaker** | Live meeting transcripts with you and the other participants labelled separately (mic + shared tab audio), then highlights, action items, decisions and open questions. Export to Markdown, TXT or SRT. No bot joins your call. |
-| **Desktop app** | One shortcut (Ctrl+Shift+Space) types what you say into any app: Slack, VS Code, Word, terminals, Claude Code. |
+| **Desktop app** | One shortcut (Ctrl+Shift+Space) types what you say into any app: Slack, VS Code, Word, terminals, Claude Code. Windows, macOS and Linux, with dictation history, a dictionary, style settings, meeting notes and a dark or light theme. |
 | **Integrations** | A Chrome extension for Google Docs, Gmail and any web text box; a Microsoft Word add-in; an MCP server so Claude Code can speak. |
 | **Speech Studio** | Turn anything from a sentence to a novel into natural speech. Playback starts while the rest is still generating, with speed control, history and WAV export. |
 | **Long-form Projects** | Multi-voice audiobooks, podcasts and voiceovers, mastered to a single file. |
@@ -70,8 +74,8 @@ All cleanup and summaries are rule-based (no language model): instant, offline, 
 ```
 
 - **Synthesis** uses [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M), a compact, high-quality TTS model, run with [transformers.js](https://github.com/huggingface/transformers.js) in a Web Worker (WebGPU when available, WASM otherwise) or on CPU in Node.
-- **Live speech recognition** uses [Moonshine](https://huggingface.co/onnx-community/moonshine-base-ONNX) (English, built for real time) or Whisper, behind an energy-based voice-activity detector in an AudioWorklet. Each phrase is transcribed as soon as you pause, with previews while you talk. File transcription uses Whisper, split at silences so results stream in.
-- **Speed:** models are warmed up on load (WebGPU shader compilation happens before your first word), cached persistently, and the site is cross-origin isolated so the WASM fallback runs multi-threaded.
+- **Live speech recognition** uses [Moonshine](https://huggingface.co/onnx-community/moonshine-base-ONNX) for English, a [Hinglish model](https://huggingface.co/Oriserve/Whisper-Hindi2Hinglish-Swift) and a [Hindi model](https://huggingface.co/vasista22/whisper-hindi-small) tuned for Indian speech, and Whisper for other languages, behind an energy-based voice-activity detector in an AudioWorklet. A phrase is transcribed when you pause (0.8 s), with previews every 0.35 s while you talk. File transcription uses Whisper, split at silences so results stream in.
+- **Speed:** the site is cross-origin isolated, so speech recognition runs multi-threaded on the CPU, which on laptops is both faster and lighter than WebGPU. Measured in the desktop app on an Intel Iris Xe laptop: a live preview takes 0.1 s, an 8-second sentence 0.7 s, and the app idles at about 760 MB. WebGPU is the fallback where isolation isn't available. The voice model loads on first use and is released after 10 idle minutes.
 - **The API** never receives text or audio. It stores only optional account data and per-day character counts.
 
 ## Repository structure
@@ -98,6 +102,7 @@ kelados/
 │       └── utils/            HttpError, helpers, password + API-key crypto
 ├── sdk/                      "kelados" npm package: SDK, CLI, drop-in server, MCP server
 ├── desktop/                  Electron tray app: global shortcut dictation into any app
+│                             (its window is the site's /app/ page, the overlay is /desktop/)
 └── integrations/             Chrome extension · Word add-in and Claude Code setup
 ```
 
@@ -223,12 +228,38 @@ cd frontend && npm test && npm run lint && npm run build   # speech logic tests;
 cd desktop  && npm test && npm run smoke
 ```
 
-Push a `v*` tag to build desktop installers for Windows and Linux (macOS once notarized) plus the Chrome extension zip
-(`.github/workflows/release.yml`).
+### Releasing
+
+Bump `version` in `desktop/package.json`, commit, then push a tag that matches it:
+
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+`.github/workflows/release.yml` runs every test suite, builds `Kelados-Setup.exe` (Windows), `Kelados.AppImage`
+(Linux) and `Kelados-mac.zip` (macOS, unsigned), zips the Chrome extension, and publishes them to a GitHub release.
+The website's download buttons and the install scripts always fetch `releases/latest`, and installed apps offer the
+update from their tray menu.
+
+### Installing and updating the desktop app
+
+```powershell
+irm https://kelados.in/install.ps1 | iex          # Windows (PowerShell)
+```
+
+```bash
+curl -fsSL https://kelados.in/install.sh | sh      # macOS and Linux (Terminal)
+```
+
+Both install the latest release or update an existing one in place, keeping settings and history. On macOS the app
+isn't notarized, so the script signs it locally (ad hoc) and clears the download flag, which lets it open normally.
 
 ## Roadmap
 
-- [ ] More languages (Kokoro supports Spanish, French, Hindi, Italian, Japanese, Portuguese and Chinese voices)
+- [ ] More text-to-speech languages (Kokoro supports Spanish, French, Hindi, Italian, Japanese, Portuguese and Chinese voices)
+- [ ] Faster Devanagari Hindi dictation (currently 5–12 s per sentence on a laptop CPU)
+- [ ] Notarized macOS build
 - [ ] Voice blending
 - [ ] MP3 / Opus export
 - [ ] Python SDK
@@ -239,6 +270,8 @@ Push a `v*` tag to build desktop installers for Windows and Linux (macOS once no
 - [kokoro-js](https://www.npmjs.com/package/kokoro-js) and [transformers.js](https://github.com/huggingface/transformers.js) by Hugging Face
 - [Whisper](https://github.com/openai/whisper) by OpenAI (MIT)
 - [Moonshine](https://github.com/usefulsensors/moonshine) by Useful Sensors (MIT)
+- [Whisper-Hindi2Hinglish-Swift](https://huggingface.co/Oriserve/Whisper-Hindi2Hinglish-Swift) by Oriserve (Apache-2.0)
+- [whisper-hindi-small](https://huggingface.co/vasista22/whisper-hindi-small) by vasista22
 
 ## License
 

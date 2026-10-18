@@ -66,7 +66,7 @@ export default function Welcome() {
 
         <p className="text-sm text-muted">
           Change the model, mic sensitivity or cleanup rules, or add snippets and dictionary words, in{" "}
-          <Link href="/dictate/" className="text-accent hover:underline">Settings</Link>. Turn on <b>Launch at login</b> from the tray menu to have it always ready.
+          <Link href="/app/#settings" className="text-accent hover:underline">Settings</Link>. Turn on <b>Launch at login</b> from the tray menu to have it always ready.
         </p>
       </div>
     </div>

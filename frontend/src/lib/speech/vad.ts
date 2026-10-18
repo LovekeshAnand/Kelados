@@ -42,7 +42,7 @@ export function concat(parts: Float32Array[]) {
 }
 
 export function createVad(opts: VadOptions, ev: VadEvents) {
-  const { sensitivity = 1, silenceMs = 600, maxMs = 20000, minSpeechMs = 250, prerollMs = 300, partialMs = 900 } = opts;
+  const { sensitivity = 1, silenceMs = 600, maxMs = 20000, minSpeechMs = 250, prerollMs = 500, partialMs = 900 } = opts;
   const winMs = (WIN / RATE) * 1000;
   let floor = 0.002;
   let speaking = false;
@@ -55,8 +55,8 @@ export function createVad(opts: VadOptions, ev: VadEvents) {
 
   const end = () => {
     if (speechMs >= minSpeechMs) {
-      // Keep ~450 ms of the "silence": quiet word endings (the t in "start") fall under the threshold too.
-      const trim = Math.max(0, Math.round(((silentMs - 450) / 1000) * RATE));
+      // Keep ~650 ms of the "silence": quiet word endings (the t in "start", a fading "lunch") fall under the threshold too.
+      const trim = Math.max(0, Math.round(((silentMs - 650) / 1000) * RATE));
       const audio = concat(buf);
       const cut = audio.subarray(0, Math.max(0, audio.length - trim));
       ev.onSegment({ audio: cut, start: segStart / RATE, end: (segStart + cut.length) / RATE });

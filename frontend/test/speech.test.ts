@@ -1,7 +1,9 @@
 // Run with: npm test (node --test, Node 22.18+ strips the types itself).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cleanup, joinText } from "../src/lib/speech/cleanup.ts";
+import { cleanup, joinText, keyCommand } from "../src/lib/speech/cleanup.ts";
+import { personalize, train } from "../src/lib/speech/learn.ts";
+import { bulletize, voiceEdit } from "../src/lib/speech/edit.ts";
 import { createVad, downsample, isHallucination, splitAtSilence, RATE, type Segment } from "../src/lib/speech/vad.ts";
 
 const c = (s: string, o = {}) => cleanup(s, o).text;
@@ -34,6 +36,22 @@ test("corrections and scratch that", () => {
   assert.equal(c("This is wrong. Scratch that. This is right."), "This is right.");
 });
 
+test("self-corrections line up with what they replace", () => {
+  assert.equal(c("Let's have a meet on Wednesday 6:00 p.m. No, no, we can have a meet at 8:00 p.m. on Friday."), "We can have a meet at 8:00 p.m. on Friday.");
+  assert.equal(c("Book the table for Wednesday at 7pm, no wait, Friday."), "Book the table for Friday at 7pm.");
+  assert.equal(c("Send it to John, no wait, to Sarah."), "Send it to Sarah.");
+  assert.equal(c("I'll meet you at the office, no no, at the cafe."), "I'll meet you at the cafe.");
+  assert.equal(c("We need 20 chairs, actually no, 25."), "We need 25 chairs.");
+  assert.equal(c("Call me at 5, no wait, 6, no no, 7."), "Call me at 7.");
+  assert.equal(c("No, no, that's totally fine."), "No, that's totally fine.");
+});
+
+test("Hindi commands, fillers and corrections", () => {
+  assert.equal(c("कल शाम छह बजे मिलते हैं नहीं नहीं सात बजे"), "कल शाम सात बजे मिलते हैं");
+  assert.equal(c("नमस्ते दोस्तों नई लाइन आज की मीटिंग पूर्ण विराम"), "नमस्ते दोस्तों\nआज की मीटिंग।");
+  assert.equal(c("उम्म मैं कल आऊंगा"), "मैं कल आऊंगा");
+});
+
 test("snippets and personal dictionary", () => {
   const snippets = [{ trigger: "my email", text: "sam@example.com" }, { trigger: "kill a dose", text: "Kelados" }];
   assert.equal(c("Write to my email.", { snippets }), "Write to sam@example.com");
@@ -54,9 +72,9 @@ test("vad cuts speech at silence and keeps preroll", () => {
   for (const chunk of [tone(1, 0), tone(1.5, 0.3), tone(1, 0), tone(0.8, 0.3), tone(1, 0)]) vad.push(chunk);
   vad.flush();
   assert.equal(segs.length, 2);
-  assert.ok(Math.abs(segs[0].start - 0.7) < 0.05, `start ${segs[0].start}`);
-  assert.ok(segs[0].end > 2.5 && segs[0].end < 3.0, `end ${segs[0].end}`);
-  assert.ok(segs[1].start > 3.1 && segs[1].start < 3.5);
+  assert.ok(Math.abs(segs[0].start - 0.5) < 0.05, `start ${segs[0].start}`); // 0.5 s preroll before speech at 1 s
+  assert.ok(segs[0].end > 2.5 && segs[0].end < 3.2, `end ${segs[0].end}`); // speech ends at 2.5 s, quiet tail kept
+  assert.ok(segs[1].start > 2.9 && segs[1].start < 3.5);
 });
 
 test("vad ignores clicks and force-cuts monologues", () => {
@@ -82,4 +100,67 @@ test("downsample and hallucination filter", () => {
   assert.ok(isHallucination("[BLANK_AUDIO]", 3));
   assert.ok(isHallucination(" you", 1));
   assert.ok(!isHallucination("Thank you.", 1));
+});
+
+test("learns your names and terms, and fixes near misses", () => {
+  const m = train(["I met Priya today", "Then Priya said hi", "Ask Priya about Kelados", "We love Kelados", "We use Kelados daily", "See you in May", "See you in May again"]);
+  assert.equal(personalize(m, "i talked to pria about kelados"), "i talked to Priya about Kelados");
+  assert.equal(personalize(m, "Kelado is ready"), "Kelados is ready");
+  assert.equal(personalize(m, "you may go"), "you may go"); // a name that's also a word stays
+  assert.equal(personalize(m, "let me know"), "let me know"); // common words are never "fixed"
+  assert.equal(personalize(train([]), "hello prya"), "hello prya"); // nothing learned, nothing changed
+});
+
+test("whole-phrase key commands", () => {
+  assert.equal(keyCommand("Press enter."), "enter");
+  assert.equal(keyCommand("Send it."), "enter");
+  assert.equal(keyCommand("Select all"), "selectAll");
+  assert.equal(keyCommand("भेजो।"), "enter");
+  assert.equal(keyCommand("Send it to Sarah tomorrow."), null);
+  assert.equal(keyCommand("Copy that file to the drive."), null);
+});
+
+test("a plain 'No,' corrects only when it restates the sentence before", () => {
+  assert.equal(c("Let's schedule a meeting for Friday at 9 p.m. No, we can schedule the meeting for Wednesday at 8 p.m."), "We can schedule the meeting for Wednesday at 8 p.m.");
+  assert.equal(c("Can you come tomorrow? No, I think that's fine."), "Can you come tomorrow? No, I think that's fine.");
+});
+
+test("days and months are capitalised, ordinary words are not", () => {
+  assert.equal(c("so let's meet on friday at 9 pm no wait wednesday at 8 pm"), "So let's meet on Wednesday at 8 pm");
+  assert.equal(c("you may march on in june"), "You may march on in June");
+});
+
+test("editing text that's already been typed", () => {
+  const typed = ["Let's have a meet on Friday at 8 p.m."];
+  const fix = (said: string, pieces = typed) => voiceEdit(pieces, c(said));
+  assert.deepEqual(fix("No no, make it Saturday."), { from: 0, text: "Let's have a meet on Saturday at 8 p.m.", label: "Corrected" });
+  assert.equal(fix("Actually, 9 p.m.")?.text, "Let's have a meet on Friday at 9 p.m.");
+  assert.equal(fix("No, we can have the meet on Monday at 10 a.m.")?.text, "We can have the meet on Monday at 10 a.m.");
+  assert.equal(fix("Change Friday to Sunday.")?.text, "Let's have a meet on Sunday at 8 p.m.");
+  // Not edits: ordinary sentences that happen to start the same way are typed as said.
+  assert.equal(fix("Actually, I also need the slides."), null);
+  assert.equal(fix("No, I can't make it."), null);
+  assert.equal(fix("Make sure you bring the laptop."), null);
+  assert.equal(fix("Change is good."), null);
+  // Later phrases are retyped unchanged when an earlier one is edited; leading spaces survive.
+  assert.deepEqual(voiceEdit(["Buy coffee.", " Call Sam."], "Change coffee to tea."), { from: 0, text: "Buy tea. Call Sam.", label: "Changed “coffee” to “tea”" });
+  assert.equal(voiceEdit(["Hi.", " Order eggs, milk and coffee."], "Make that a bullet list.")?.text, "\n- Order eggs\n- Milk\n- Coffee");
+});
+
+test("bullet lists", () => {
+  assert.equal(bulletize("Shopping list: eggs, milk and coffee."), "Shopping list:\n- Eggs\n- Milk\n- Coffee");
+  assert.equal(bulletize("eggs, milk, bread, and butter"), "- Eggs\n- Milk\n- Bread\n- Butter");
+  assert.equal(bulletize("Just one thing."), null);
+  // The spoken edit survives cleanup's own "bullet point" command.
+  assert.equal(c("Make that a bullet list."), "Make that a bullet list.");
+  assert.equal(voiceEdit(["Order eggs, milk, and coffee."], c("Make that a bullet list."))?.text, "- Order eggs\n- Milk\n- Coffee");
+});
+
+test("spoken addresses and stray quotes", () => {
+  assert.equal(c("Email me at Sam at example dot com or visit kelados dot in."), "Email me at sam@example.com or visit kelados.in.");
+  assert.equal(c("Visit example.com today."), "Visit example.com today.");
+  assert.equal(c("Back in the dot com era."), "Back in the dot com era.");
+  assert.equal(c("I'll meet you at the office."), "I'll meet you at the office.");
+  assert.equal(c('He said "hello" to me.'), 'He said "hello" to me.');
+  assert.equal(c('"Hey Priya, can you send it?'), "Hey Priya, can you send it?");
 });

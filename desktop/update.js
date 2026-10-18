@@ -1,5 +1,5 @@
 // Release check against GitHub. The app's UI is the live website (always current); only the native shell needs
-// reinstalling, which is rare, so a notification + link to the download page is enough (no auto-installer).
+// reinstalling, which is rare; main.js installs it in place with the public one-line installer when the user clicks.
 const API = "https://api.github.com/repos/LovekeshAnand/Kelados/releases/latest";
 
 /** True when version `a` (e.g. "1.2.0" or "v1.2.0") is newer than `b`. */

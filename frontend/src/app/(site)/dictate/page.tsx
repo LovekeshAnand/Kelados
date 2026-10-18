@@ -10,20 +10,24 @@ import { STT_MODELS, sttModel } from "@/lib/engine/stt";
 import { speak } from "@/lib/engine/tts";
 import { dictationsDb, type Dictation } from "@/lib/local-db";
 import { joinText } from "@/lib/speech/cleanup";
-import { useDictateSettings } from "@/lib/speech/settings";
+import { LANGUAGES, useDictateSettings } from "@/lib/speech/settings";
 import { useSnippets } from "@/lib/speech/snippets";
+import { voiceEdit } from "@/lib/speech/edit";
 import { useDictation } from "@/lib/speech/useDictation";
+import { useLearned } from "@/lib/speech/useLearned";
 
 const COMMANDS = [
   ["new line / new paragraph", "line breaks"],
   ["bullet point", "starts a list item"],
   ["comma · colon · question mark", "punctuation"],
   ["scratch that", "deletes the last phrase"],
-  ["…4pm, no wait, 5pm", "keeps only the correction"],
+  ["Wednesday 6pm, no no, Friday 8pm", "keeps only the correction"],
+  ["नई लाइन · पूर्ण विराम · नहीं नहीं", "the same, in Hindi"],
 ];
 
 export default function DictatePage() {
-  const { settings, update, language } = useDictateSettings();
+  const { settings, update, setLanguage, language } = useDictateSettings();
+  const learned = useLearned(settings.learn);
   const [text, setText] = useState("");
   const [history, setHistory] = useState<Dictation[]>([]);
   const [reading, setReading] = useState<{ stop: () => void } | null>(null);
@@ -36,7 +40,8 @@ export default function DictatePage() {
   }, []);
 
   const textRef = useRef(text);
-  useLayoutEffect(() => { textRef.current = text; });
+  const commandsRef = useRef(settings.commands);
+  useLayoutEffect(() => { textRef.current = text; commandsRef.current = settings.commands; });
   const onText = useCallback((phrase: string, undo: boolean) => {
     const t = textRef.current;
     let next = t;
@@ -44,17 +49,24 @@ export default function DictatePage() {
       const last = pieces.current.pop();
       if (last && t.endsWith(last)) next = t.slice(0, -last.length).trimEnd();
     } else {
-      next = joinText(t, phrase);
-      pieces.current.push(next.slice(t.length));
+      // Voice edits rewrite what this session typed ("change coffee to tea"); manual typing clears that memory.
+      const ed = commandsRef.current ? voiceEdit(pieces.current, phrase) : null;
+      const old = ed ? pieces.current.slice(ed.from).join("") : "";
+      if (ed && t.endsWith(old)) {
+        next = t.slice(0, t.length - old.length) + ed.text;
+        pieces.current.splice(ed.from, pieces.current.length, ed.text);
+      } else {
+        next = joinText(t, phrase);
+        pieces.current.push(next.slice(t.length));
+      }
     }
     textRef.current = next;
     setText(next);
   }, []);
 
-  const model = sttModel(settings.model);
   const d = useDictation({
     model: settings.model, language,
-    sensitivity: settings.sensitivity, fillers: settings.fillers, commands: settings.commands, snippets, onText,
+    sensitivity: settings.sensitivity, fillers: settings.fillers, commands: settings.commands, snippets, onText, transform: learned,
     preload: inDesktopApp ? "never" : "cached", // the desktop app's overlay already holds the model in memory
   });
 
@@ -138,16 +150,16 @@ export default function DictatePage() {
               className="w-full rounded-sm border border-line bg-bg px-3 py-2 text-sm">
               {STT_MODELS.map((m) => <option key={m.id} value={m.id}>{m.name} · {m.note}</option>)}
             </select>
-            {model.multilingual && (
-              <label className="block text-xs text-muted">Language code (blank = detect)
-                <input value={settings.language} onChange={(e) => update({ language: e.target.value.trim() })} placeholder="en, es, hi…"
-                  className="mt-1 w-full rounded-sm border border-line bg-bg px-3 py-2 text-sm text-fg" />
-              </label>
-            )}
+            <label className="block text-xs text-muted">Language
+              <select value={sttModel(settings.model).multilingual ? settings.language : "en"} onChange={(e) => setLanguage(e.target.value)}
+                className="mt-1 w-full rounded-sm border border-line bg-bg px-3 py-2 text-sm text-fg">
+                {LANGUAGES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+              </select>
+            </label>
             <label className="block text-xs text-muted">Mic sensitivity · {settings.sensitivity.toFixed(1)}×
               <input type="range" min={0.5} max={2.5} step={0.1} value={settings.sensitivity} onChange={(e) => update({ sensitivity: +e.target.value })} className="mt-2 w-full" />
             </label>
-            {([["fillers", "Remove um, uh and stutters"], ["commands", "Voice commands and corrections"]] as const).map(([k, label]) => (
+            {([["fillers", "Remove um, uh and stutters"], ["commands", "Voice commands and corrections"], ["learn", "Learn my names and terms, fix mishearings"]] as const).map(([k, label]) => (
               <label key={k} className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={settings[k]} onChange={(e) => update({ [k]: e.target.checked })} className="accent-[var(--color-accent)]" />
                 {label}

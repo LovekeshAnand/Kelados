@@ -35,7 +35,7 @@ const SCHEMA = [
     "path": "/dictate/",
     "description": "Free voice dictation that turns speech into clean, punctuated text in real time. Removes filler words, understands “scratch that” and corrections, expands snippets. Runs privately on your device.",
     "category": "ProductivityApplication",
-    "os": "Web browser, Windows, Linux",
+    "os": "Web browser, Windows, macOS, Linux",
     "features": [
       "Real-time speech to text",
       "Filler word removal",

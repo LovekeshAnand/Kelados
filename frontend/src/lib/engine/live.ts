@@ -14,6 +14,8 @@ export type LiveOptions = {
   onSpeech?: (speaking: boolean) => void;
   onLevel?: (rms: number) => void;
   onError?: (e: Error) => void;
+  /** Audio from just before the user pressed start (Rewind's buffer), so a first word said early isn't lost. */
+  prime?: Float32Array;
 };
 
 // Batches 128-sample render quanta into ~128 ms posts to keep main-thread messages cheap.
@@ -40,7 +42,8 @@ export const micStream = () => navigator.mediaDevices.getUserMedia({
   audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
 });
 
-export async function startLive(stream: MediaStream, o: LiveOptions) {
+/** Mic → 16 kHz mono chunks of ~128 ms, until `stop()`. Shared by live dictation and Rewind's rolling buffer. */
+export async function tapStream(stream: MediaStream, onAudio: (chunk: Float32Array) => void) {
   let ctx: AudioContext;
   try { ctx = new AudioContext({ sampleRate: RATE }); } catch { ctx = new AudioContext(); }
   tapUrl ??= URL.createObjectURL(new Blob([TAP], { type: "text/javascript" }));
@@ -59,7 +62,17 @@ export async function startLive(stream: MediaStream, o: LiveOptions) {
   const mute = ctx.createGain();
   mute.gain.value = 0;
   src.connect(tap).connect(mute).connect(ctx.destination); // must reach the destination to be pulled
+  tap.port.onmessage = ({ data }) => onAudio(downsample(data, ctx.sampleRate));
+  return {
+    async stop() {
+      tap.port.onmessage = null;
+      src.disconnect();
+      await ctx.close();
+    },
+  };
+}
 
+export async function startLive(stream: MediaStream, o: LiveOptions) {
   let seg = 0; // id of the phrase being spoken; stale previews for finished phrases are dropped
   let finals = Promise.resolve();
   const opts = { model: o.model, language: o.language };
@@ -81,16 +94,14 @@ export async function startLive(stream: MediaStream, o: LiveOptions) {
       }, (e) => o.onError?.(e));
     },
   });
-
-  tap.port.onmessage = ({ data }) => vad.push(downsample(data, ctx.sampleRate));
+  if (o.prime?.length) vad.push(o.prime);
+  const tap = await tapStream(stream, (chunk) => vad.push(chunk));
 
   return {
     /** Stop listening; resolves once the last phrase has been transcribed. */
     async stop() {
-      tap.port.onmessage = null;
+      await tap.stop();
       vad.flush();
-      src.disconnect();
-      await ctx.close();
       await finals;
     },
   };

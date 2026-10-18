@@ -90,6 +90,14 @@ export function loadEngine(): Promise<void> {
   return p;
 }
 
+/** Free the voice model's memory (over 1 GB on a GPU). The next call loads it again from the browser cache. */
+export function unloadEngine() {
+  if (jobs.size) return; // still speaking
+  worker?.terminate();
+  worker = null;
+  set({ status: "idle", progress: 0, device: undefined });
+}
+
 /** Switch WebGPU/CPU. Tears down the worker; the next call reloads the model (cached, so fast). */
 export function setDevicePref(pref: DevicePref) {
   try { localStorage.setItem(PREF_KEY, pref); } catch {}

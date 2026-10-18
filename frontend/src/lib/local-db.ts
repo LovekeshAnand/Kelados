@@ -25,7 +25,8 @@ export type Note = {
   scratch: string;
 };
 
-export type Dictation = { id: string; text: string; createdAt: number };
+/** `seconds` of speech (for words per minute); `source` is where it was dictated. Older entries have neither. */
+export type Dictation = { id: string; text: string; createdAt: number; seconds?: number; source?: "desktop" | "web" };
 
 const DB = "kelados";
 const STORES = ["history", "notes", "dictations"] as const;
@@ -67,6 +68,18 @@ function table<T extends { id: string; createdAt: number }>(name: StoreName) {
 export const historyDb = table<HistoryItem>("history");
 export const notesDb = table<Note>("notes");
 export const dictationsDb = table<Dictation>("dictations");
+
+// The desktop overlay and the app window are separate pages on one origin; this tells the window to refresh.
+const channel = () => (typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel("kelados-dictations"));
+export async function addDictation(item: Dictation) {
+  await dictationsDb.put(item);
+  const c = channel(); c?.postMessage("changed"); c?.close();
+}
+export function onDictationsChanged(cb: () => void) {
+  const c = channel();
+  if (c) c.onmessage = cb;
+  return () => c?.close();
+}
 
 // Generated audio is uncompressed WAV (~3 MB a minute), so only the latest clips are kept.
 const HISTORY_LIMIT = 50;

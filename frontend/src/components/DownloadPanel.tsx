@@ -10,18 +10,35 @@ type Release = { tag_name: string; published_at: string; html_url: string; asset
 
 const API = GITHUB_URL.replace("https://github.com/", "https://api.github.com/repos/") + "/releases/latest";
 
-type Platform = "windows" | "linux";
-// ponytail: macOS is held back until the app can be notarized; the desktop code already supports it (dmg target, permissions).
+type Platform = "windows" | "mac" | "linux";
 export const BUILDS: Record<Platform, { label: string; file: string; note: string }> = {
   windows: { label: "Windows", file: "Kelados-Setup.exe", note: "Windows 10 and 11 · 64-bit" },
+  mac: { label: "Mac", file: "Kelados-mac.zip", note: "macOS 11+ · Apple silicon and Intel" },
   linux: { label: "Linux", file: "Kelados.AppImage", note: "AppImage · x64" },
 };
+// The same scripts install a fresh copy or update an existing one, keeping settings and history.
+export const INSTALL_CMD = { windows: "irm https://kelados.in/install.ps1 | iex", unix: "curl -fsSL https://kelados.in/install.sh | sh" };
+
+function Command({ cmd }: { cmd: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="flex items-center gap-2 rounded-sm border border-line bg-bg py-1.5 pl-3 pr-1.5">
+      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-[13px] text-fg">{cmd}</code>
+      <button onClick={() => { navigator.clipboard.writeText(cmd); setCopied(true); }} className={btn("secondary", "sm")}>{copied ? "Copied" : "Copy"}</button>
+    </div>
+  );
+}
 
 const STEPS: Record<Platform, React.ReactNode[]> = {
   windows: [
     <>Run <b>Kelados-Setup.exe</b>. It installs for your user only, so no admin rights are needed, and starts by itself.</>,
     <>Windows may show <b>&ldquo;Windows protected your PC&rdquo;</b> because the app isn&apos;t code-signed yet. Click <b>More info → Run anyway</b>.</>,
     <>A welcome window opens. Click in its box, press <b>Ctrl+Shift+Space</b>, and talk.</>,
+  ],
+  mac: [
+    <>Open <b>Terminal</b> and paste the command above. It downloads Kelados into Applications and opens it.</>,
+    <>Kelados isn&apos;t notarized by Apple yet, so the script signs it on your Mac (no Apple account needed) and clears the download flag. That&apos;s what lets it open normally.</>,
+    <>Allow <b>Microphone</b> and <b>Accessibility</b> when macOS asks, then press <b>Cmd+Shift+Space</b> in any app and talk.</>,
   ],
   linux: [
     <>Make it executable: <code className="font-mono text-accent">chmod +x Kelados.AppImage</code>, then run it.</>,
@@ -44,7 +61,7 @@ export function DownloadPanel() {
   const os = useSyncExternalStore(noop, detectOS, () => "windows" as OS);
   const [release, setRelease] = useState<Release | null | "none">(null);
   const [pick, setPick] = useState<Platform | null>(null);
-  const target: Platform = pick ?? (os === "linux" ? "linux" : "windows");
+  const target: Platform = pick ?? (os === "linux" || os === "mac" ? os : "windows");
 
   useEffect(() => {
     fetch(API, { headers: { accept: "application/vnd.github+json" } })
@@ -59,13 +76,7 @@ export function DownloadPanel() {
     <div className="space-y-6">
       {os === "mobile" && (
         <p className="rounded-sm border border-accent/30 bg-accent-soft p-4 text-sm text-accent">
-          The desktop app is for Windows and Linux. On your phone, <Link href="/dictate/" className="underline">dictate in the browser</Link> instead.
-        </p>
-      )}
-      {os === "mac" && (
-        <p className="rounded-sm border border-accent/30 bg-accent-soft p-4 text-sm leading-relaxed text-accent">
-          The Mac app is coming soon. Until then, <Link href="/dictate/" className="underline">dictate in the browser</Link> or use the{" "}
-          <Link href="/integrations/#chrome" className="underline">Chrome extension</Link> to talk into Google Docs, Gmail and any website.
+          The desktop app is for Windows, Mac and Linux. On your phone, <Link href="/dictate/" className="underline">dictate in the browser</Link> instead.
         </p>
       )}
 
@@ -73,7 +84,7 @@ export function DownloadPanel() {
         <div className="dots-ramp pointer-events-none absolute inset-0 opacity-40" />
         <div className="relative flex flex-wrap items-center gap-6">
           <div className="min-w-0 grow basis-60">
-            <p className="label text-xs text-accent">{pick || os === "mac" ? "Selected" : "Recommended for your computer"}</p>
+            <p className="label text-xs text-accent">{pick ? "Selected" : "Recommended for your computer"}</p>
             <h2 className="display mt-1 text-5xl">Kelados for {BUILDS[target].label}</h2>
             <p className="mt-2 font-mono text-xs text-muted">
               {BUILDS[target].note}
@@ -82,6 +93,8 @@ export function DownloadPanel() {
           </div>
           {release === null ? (
             <span className="flex items-center gap-2 text-sm text-muted"><Spinner /> Checking the latest version…</span>
+          ) : main && target === "mac" ? (
+            <div className="w-full max-w-md"><Command cmd={INSTALL_CMD.unix} /></div>
           ) : main ? (
             <a href={main.browser_download_url} className={btn("primary", "lg")}>Download for {BUILDS[target].label}</a>
           ) : (
@@ -109,7 +122,13 @@ export function DownloadPanel() {
           </ol>
         </div>
         <div className={`${card} space-y-4 p-6 text-sm`}>
-          <h3 className="label text-sm text-accent">Good to know</h3>
+          <h3 className="label text-sm text-accent">Install or update with one command</h3>
+          <p className="text-muted">Already have Kelados? Run this to update it in place; your settings and history stay. It also works for a fresh install.</p>
+          <p className="text-xs text-subtle">Windows (PowerShell)</p>
+          <Command cmd={INSTALL_CMD.windows} />
+          <p className="text-xs text-subtle">Mac and Linux (Terminal)</p>
+          <Command cmd={INSTALL_CMD.unix} />
+          <h3 className="label pt-2 text-sm text-accent">Good to know</h3>
           <p className="text-muted">Free, no account, no limits. Speech is recognised on your computer; the first launch downloads the speech model once (about a minute).</p>
           <p className="text-muted">The app always uses the newest Kelados models and fixes, so you rarely need to reinstall.</p>
           {main?.digest && (

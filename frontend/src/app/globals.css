@@ -35,6 +35,58 @@
 
 :root { color-scheme: dark; }
 
+/* Light theme (chosen in the app's sidebar). Baby pink is too pale for text on white, so the accent deepens. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #faf7f8;
+  --color-surface: #ffffff;
+  --color-elevated: #f3edf0;
+  --color-line: #ebe1e6;
+  --color-line-strong: #d6c6ce;
+  --color-fg: #1c1218;
+  --color-muted: #5e4954;
+  --color-subtle: #9a8590;
+  --color-accent: #d1347c;
+  --color-accent-strong: #ff4fa0;
+  --color-accent-soft: #d1347c14;
+  --color-danger: #cf3047;
+  --color-ok: #13865a;
+}
+
+/* The desktop app (main window and dictation overlay): a quiet, neutral palette with pink kept for the brand and the
+   one primary action. The website keeps its own look. */
+.app-ui {
+  --color-bg: #09090a;
+  --color-surface: #111113;
+  --color-elevated: #19191c;
+  --color-line: #232327;
+  --color-line-strong: #36363c;
+  --color-fg: #ededef;
+  --color-muted: #a1a1aa;
+  --color-subtle: #6f6f78;
+  --color-accent: #f0a6c6;
+  --color-accent-soft: #f0a6c614;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-app, var(--font-sans));
+}
+:root[data-theme="light"] .app-ui {
+  --color-bg: #f1f1f2;
+  --color-surface: #ffffff;
+  --color-elevated: #f5f5f6;
+  --color-line: #e6e6e9;
+  --color-line-strong: #d4d4d8;
+  --color-fg: #18181b;
+  --color-muted: #52525b;
+  --color-subtle: #8a8a93;
+  --color-accent: #c93b7a;
+  --color-accent-soft: #c93b7a12;
+}
+/* Website components shown inside the app (notes, snippet editor, storage) take the app's plain type. */
+.app-ui .display { font-family: inherit; text-transform: none; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; }
+.app-ui .label { font-family: inherit; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.app-ui .dots, .app-ui .dots-ramp { display: none; }
+
 html { scroll-behavior: smooth; }
 
 /* Grid items default to min-width: auto, so one long unbreakable line (a code snippet, a URL) widens the whole

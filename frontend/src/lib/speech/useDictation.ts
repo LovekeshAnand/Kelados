@@ -12,8 +12,12 @@ export type DictationOptions = CleanupOptions & {
   sensitivity?: number;
   /** "cached" (default): warm the model on open only if it's already downloaded. "always": download now. "never": wait for the mic. */
   preload?: "cached" | "always" | "never";
-  /** A cleaned phrase is ready. `undoPrevious` means the user said "scratch that". */
-  onText: (text: string, undoPrevious: boolean) => void;
+  /** Runs on each cleaned phrase, e.g. fixes learned from your own writing. */
+  transform?: (text: string) => string;
+  /** Audio from just before start (Rewind's buffer), fed in first so early words aren't clipped. */
+  prime?: () => Float32Array | undefined;
+  /** A cleaned phrase is ready. `undoPrevious` means the user said "scratch that". `seconds` is how long it took to say. */
+  onText: (text: string, undoPrevious: boolean, seconds: number) => void;
 };
 
 /** Microphone → live STT → rule-based cleanup, as a start/stop hook. */
@@ -32,8 +36,11 @@ export function useDictation(o: DictationOptions) {
     else if (o.preload !== "never") warmStt(o.model);
   }, [o.model, o.preload]);
 
+  const starting = useRef(false);
   const start = useCallback(async () => {
-    if (session.current) return;
+    // `session` is only set once the mic is open, so a second press while starting must be refused here.
+    if (session.current || starting.current) return;
+    starting.current = true;
     setError(""); setStatus("starting");
     let stream: MediaStream | null = null;
     try {
@@ -41,21 +48,28 @@ export function useDictation(o: DictationOptions) {
       const live = await startLive(stream, {
         model: opts.current.model,
         language: opts.current.language,
-        vad: { sensitivity: opts.current.sensitivity ?? 1, silenceMs: 550 },
+        // A phrase ends after 0.8 s of quiet (longer than a breath inside a sentence) (or when you press stop), so whole sentences reach the model together: it
+        // hears "schedule the meeting" in context instead of guessing at a fragment. Live previews refresh as fast as the
+        // model allows: every 0.35 s on Moonshine (~0.2 s each), every 1.5 s on the slower Whisper models.
+        vad: { sensitivity: opts.current.sensitivity ?? 1, silenceMs: 800, maxMs: 20000, partialMs: opts.current.model.includes("moonshine") ? 350 : 1500 },
+        prime: opts.current.prime?.(),
         onPartial: setPartial,
         onLevel: setLevel,
-        onFinal: ({ text }) => {
+        onFinal: ({ text, start, end }) => {
           setPartial("");
           const { fillers, commands, snippets } = opts.current;
           const r = cleanup(text, { fillers, commands, snippets });
-          if (r.text || r.undoPrevious) opts.current.onText(r.text, r.undoPrevious);
+          const out = r.text && opts.current.transform ? opts.current.transform(r.text) : r.text;
+          if (out || r.undoPrevious) opts.current.onText(out, r.undoPrevious, end - start);
         },
         onError: (e) => setError(e.message),
       });
       session.current = { live, stream };
+      starting.current = false;
       setStatus("listening");
     } catch (e) {
       stream?.getTracks().forEach((t) => t.stop());
+      starting.current = false;
       setError((e as Error).name === "NotAllowedError" ? "Microphone access was blocked. Allow it in the address bar and try again." : (e as Error).message);
       setStatus("idle");
     }

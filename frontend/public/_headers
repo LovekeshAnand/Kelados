@@ -1,3 +1,10 @@
+# The one-line installers are read by `irm` / `curl | sh`, which need them served as text.
+/install.ps1
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+/install.sh
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
 /workers/*
   Cache-Control: public, max-age=3600
 /_next/static/*

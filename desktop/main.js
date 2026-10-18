@@ -1,18 +1,24 @@
 // Kelados desktop: a tray app with a global shortcut that types what you say into whatever app is focused.
 // The overlay is the website's /desktop/ page, so the desktop app shares the web app's models, cache and settings.
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, session, shell, systemPreferences, Tray } from "electron";
+import { spawn } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dispose, typeText, undo } from "./keys.js";
+import { dispose, pressKey, replaceTyped, selectedText, typeText, undo, VOICE_KEYS } from "./keys.js";
 import { latestIfNewer } from "./update.js";
 
 const urlArg = process.argv.find((a) => a.startsWith("--url="))?.slice(6); // `npm run dev` points at localhost
 const BASE = (urlArg || process.env.KELADOS_URL || "https://kelados.in").replace(/\/$/, "");
 const ORIGIN = new URL(BASE).origin;
 const SHORTCUT = "CommandOrControl+Shift+Space";
+const REWIND = "CommandOrControl+Alt+R"; // type what you said in the last 30 s (only while Rewind is on)
+const READ = "CommandOrControl+Alt+S"; // read the selected text aloud, in any app (again to stop)
+const SITE = "https://kelados.in"; // install scripts live here even when BASE points at a dev server
 const SMOKE = process.argv.includes("--smoke"); // CI: load the overlay, report, quit
 const asset = (p) => fileURLToPath(new URL(p, import.meta.url));
+
+const TITLE_BAR = { dark: { color: "#09090a", symbolColor: "#a1a1aa" }, light: { color: "#f1f1f2", symbolColor: "#52525b" } };
 
 let overlay, win, tray, hideTimer;
 let status = "idle";
@@ -61,19 +67,22 @@ function createOverlay() {
   overlay.loadURL(`${BASE}/desktop/`);
 }
 
-/** One app window for welcome and settings. Same origin as the overlay, so settings changes reach it live. */
+/** The app window (home, history, dictionary, settings). Same origin as the overlay, so settings changes reach it live. */
 function openWindow(path) {
   if (!win || win.isDestroyed()) {
-    win = new BrowserWindow({ width: 1100, height: 820, title: "Kelados", backgroundColor: "#050405", autoHideMenuBar: true,
-      icon: asset("./build/icon.png"), webPreferences: { sandbox: true, contextIsolation: true } });
+    // Kelados draws its own title bar; Windows/Linux keep native buttons as an overlay recoloured to the theme.
+    win = new BrowserWindow({ width: 1180, height: 820, minWidth: 820, minHeight: 560, title: "Kelados", backgroundColor: TITLE_BAR.dark.color,
+      autoHideMenuBar: true, icon: asset("./build/icon.png"), titleBarStyle: "hidden",
+      ...(process.platform === "darwin" ? { trafficLightPosition: { x: 16, y: 14 } } : { titleBarOverlay: { ...TITLE_BAR.dark, height: 44 } }),
+      webPreferences: { preload: asset("./preload.cjs"), sandbox: true, contextIsolation: true } });
     lockDown(win);
   }
   win.loadURL(`${BASE}${path}`);
   win.show();
   win.focus();
 }
-const openWelcome = () => openWindow("/welcome/");
-const openSettings = () => openWindow("/dictate/");
+const openWelcome = () => openWindow("/app/");
+const openSettings = () => openWindow("/app/#settings");
 
 /** First launch: say hello (otherwise the app just vanishes into the tray) and ask macOS for the permissions it needs. */
 async function firstRun() {
@@ -100,11 +109,11 @@ function setStatus(s) {
 function refreshTray() {
   tray.setToolTip(status === "listening" ? "Kelados · listening" : "Kelados · Ctrl+Shift+Space to dictate");
   tray.setContextMenu(Menu.buildFromTemplate([
-    ...(update ? [{ label: `Update available: ${update}…`, click: () => shell.openExternal(`${BASE}/download/`) }, { type: "separator" }] : []),
+    ...(update ? [{ label: `Install update ${update} now`, click: installUpdate }, { type: "separator" }] : []),
     { label: status === "idle" ? "Start dictation" : "Stop dictation", accelerator: SHORTCUT, click: toggle },
     { type: "separator" },
-    { label: "How to use Kelados…", click: openWelcome },
-    { label: "Settings, snippets & dictionary…", click: openSettings },
+    { label: "Open Kelados…", click: openWelcome },
+    { label: "Settings…", click: openSettings },
     { label: "Open the Kelados website", click: () => shell.openExternal(BASE) },
     { label: "Launch at login", type: "checkbox", checked: app.getLoginItemSettings().openAtLogin,
       click: (i) => app.setLoginItemSettings({ openAtLogin: i.checked }) },
@@ -133,10 +142,23 @@ app.whenReady().then(() => {
     dialog.showMessageBox({ type: "warning", title: "Kelados", message: "Ctrl+Shift+Space is already used by another app.",
       detail: "Quit that app (or change its shortcut) and restart Kelados. You can still start dictation from the tray menu." });
   }
+  globalShortcut.register(READ, async () => overlay.webContents.send("read", await selectedText()));
   firstRun();
   setTimeout(checkForUpdate, 15_000);
   setInterval(checkForUpdate, 24 * 3600_000);
 });
+
+/**
+ * Update in place with the same one-line installer people run by hand (kelados.in/install.ps1 or install.sh): it downloads
+ * the latest release, closes this app, installs over it and starts the new version. Settings and history are kept.
+ */
+function installUpdate() {
+  const [cmd, args] = process.platform === "win32"
+    ? ["powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `irm ${SITE}/install.ps1 | iex`]]
+    : ["sh", ["-c", `curl -fsSL ${SITE}/install.sh | sh`]];
+  spawn(cmd, args, { detached: true, stdio: "ignore", windowsHide: true }).unref();
+  app.quit();
+}
 
 async function checkForUpdate() {
   const tag = await latestIfNewer(app.getVersion());
@@ -144,8 +166,8 @@ async function checkForUpdate() {
   update = tag;
   refreshTray();
   if (Notification.isSupported()) {
-    const n = new Notification({ title: "Kelados update available", body: `${tag} is ready. Click to download it.` });
-    n.on("click", () => shell.openExternal(`${BASE}/download/`));
+    const n = new Notification({ title: "Kelados update available", body: `${tag} is ready. Click to install it (takes about a minute).` });
+    n.on("click", installUpdate);
     n.show();
   }
 }
@@ -153,6 +175,18 @@ async function checkForUpdate() {
 ipcMain.on("insert", (e, text) => { if (fromUs(e) && text) typeText(text); });
 ipcMain.on("undo", (e) => { if (fromUs(e)) undo(); });
 ipcMain.on("status", (e, s) => { if (fromUs(e) && !SMOKE) setStatus(s); });
+ipcMain.on("theme", (e, t) => {
+  if (fromUs(e) && win && !win.isDestroyed() && process.platform !== "darwin" && TITLE_BAR[t]) win.setTitleBarOverlay(TITLE_BAR[t]);
+});
+ipcMain.on("replace", (e, count, text) => {
+  if (fromUs(e) && Number.isInteger(count) && count > 0 && count <= 20000) replaceTyped(count, String(text ?? ""));
+});
+ipcMain.on("key", (e, name) => { if (fromUs(e) && VOICE_KEYS.includes(name)) pressKey(name); });
+ipcMain.on("rewind-enabled", (e, on) => {
+  if (!fromUs(e)) return;
+  if (on && !globalShortcut.isRegistered(REWIND)) globalShortcut.register(REWIND, () => overlay.webContents.send("rewind"));
+  if (!on && globalShortcut.isRegistered(REWIND)) globalShortcut.unregister(REWIND);
+});
 
 app.on("second-instance", openWelcome); // launching it again (Start menu, Dock) brings the window up
 app.on("window-all-closed", () => {}); // tray app: keep running with no windows

@@ -16,11 +16,21 @@ export type SttModel = {
 export const STT_MODELS: SttModel[] = [
   { id: "onnx-community/moonshine-base-ONNX", name: "Moonshine Base", note: "English · 60–100 MB · fastest live", multilingual: false, timestamps: false },
   { id: "onnx-community/whisper-tiny.en", name: "Whisper Tiny", note: "English · 40–100 MB", multilingual: false, timestamps: true },
-  { id: "onnx-community/whisper-base", name: "Whisper Base", note: "99 languages · 80–145 MB", multilingual: true, timestamps: true },
-  { id: "onnx-community/whisper-small", name: "Whisper Small", note: "99 languages · 250–300 MB · most accurate", multilingual: true, timestamps: true },
+  { id: "onnx-community/whisper-base", name: "Whisper Base", note: "99 languages · 80–145 MB · Hindi and other languages", multilingual: true, timestamps: true },
+  { id: "onnx-community/whisper-small", name: "Whisper Small", note: "99 languages · 250–300 MB · more accurate, slower", multilingual: true, timestamps: true },
+  // Fine-tuned for Indian speech (Oriserve, Apache-2.0): Hindi and English mixed, written in English letters.
+  { id: "Hirecentive-D3l/Whisper-Hindi2Hinglish-Swift-ONNX", name: "Hinglish", note: "Hindi + English · 100 MB · English letters", multilingual: false, timestamps: false },
+  { id: "onnx-community/whisper-hindi-small-ONNX", name: "Hindi", note: "हिंदी · 400 MB · Devanagari, slower", multilingual: false, timestamps: false },
 ];
+// Measured in the desktop app on an Intel Iris Xe (WebGPU): Moonshine previews 1.5 s of speech in 0.18 s and a 13 s
+// sentence in 1.3 s; Whisper Base needs 1.3–2.5 s, Small 4–8 s, Large Turbo ~35 s. So live dictation defaults to
+// Moonshine, and Whisper is for languages Moonshine doesn't speak. Indian speech has its own tuned models: Hinglish
+// 1.1–1.7 s per sentence, Devanagari Hindi 5–12 s (multi-threaded CPU).
 export const LIVE_MODEL = STT_MODELS[0].id;
-export const FILE_MODEL = STT_MODELS[2].id;
+export const MULTILINGUAL_MODEL = STT_MODELS[2].id;
+export const HINGLISH_MODEL = STT_MODELS[4].id;
+export const HINDI_MODEL = STT_MODELS[5].id;
+export const FILE_MODEL = MULTILINGUAL_MODEL;
 export const sttModel = (id: string) => STT_MODELS.find((m) => m.id === id) ?? STT_MODELS[0];
 
 export type SttState = {

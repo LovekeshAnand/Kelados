@@ -59,7 +59,7 @@ const SCHEMA = appSchema({
   path: "/",
   description: "Free, open-source voice AI that runs on your device: dictation into any app, live meeting notes, transcription in 99 languages and natural text to speech.",
   category: "ProductivityApplication",
-  os: "Web browser, Windows, Linux",
+  os: "Web browser, Windows, macOS, Linux",
   features: ["Voice dictation into any app", "AI meeting notetaker without a bot", "Speech to text in 99 languages with subtitles", "Text to speech with 28 voices", "Chrome extension, Word add-in and Claude Code integration", "On-device processing, nothing uploaded", "No usage limits"],
 });
 
@@ -71,8 +71,7 @@ export default function Home() {
         <div className="dots pointer-events-none absolute inset-0" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-12 md:px-8 lg:grid-cols-[1fr_1.05fr] lg:pb-24 lg:pt-20">
           <div className="relative z-10">
-            <Kicker>Open-source voice AI · runs on your device</Kicker>
-            <h1 className="display mt-6 text-[clamp(4rem,11vw,9rem)]">
+            <h1 className="display text-[clamp(4rem,11vw,9rem)]">
               Speak<br />It&apos;s <span className="text-accent">written</span>
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">

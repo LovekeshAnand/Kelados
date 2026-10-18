@@ -8,9 +8,9 @@ import { appSchema, breadcrumbSchema, pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
   path: "/download/",
-  title: "Free Dictation App for Windows & Linux",
+  title: "Free Dictation App for Windows, Mac & Linux",
   social: "Kelados for Desktop – Free Voice Dictation in Any App",
-  description: "Free desktop dictation app for Windows and Linux (Mac coming soon). Press Ctrl+Shift+Space, talk, and Kelados types into any app: Word, Slack, VS Code, terminals and Claude Code. Speech never leaves your computer.",
+  description: "Free desktop dictation app for Windows, Mac and Linux. Press Ctrl+Shift+Space, talk, and Kelados types into any app: Word, Slack, VS Code, terminals and Claude Code. Speech never leaves your computer.",
 });
 
 const FAQ = [
@@ -20,7 +20,7 @@ const FAQ = [
   ["Does it work offline?", "After the first launch downloads the speech model (about 100 MB, once), recognition runs locally. The app loads its interface from the Kelados website, so it needs a connection to start."],
   ["Can I use Kelados with Claude Code or other terminal tools?", "Yes. Focus the terminal, press the shortcut and speak your prompt; Kelados types it in. Kelados also ships an MCP server so Claude Code can talk back."],
   ["Is Kelados a free alternative to Wispr Flow?", "Kelados covers the same core workflow (a global shortcut that turns speech into clean text in any app) for free, with recognition on your device instead of in the cloud."],
-  ["Is there a Kelados app for Mac?", "The Mac app is coming soon, once it can be signed and notarized by Apple. Mac users can already dictate in the browser at kelados.in/dictate and use the Chrome extension in Google Docs, Gmail and any website."],
+  ["Is there a Kelados app for Mac?", "Yes. Open Terminal and run: curl -fsSL https://kelados.in/install.sh | sh. It installs Kelados into Applications and opens it. The app isn't notarized by Apple yet, so the script signs it locally on your Mac, which lets it open without a warning. It works on Apple silicon and Intel Macs."],
 ] as const;
 
 const SCHEMA = [
@@ -29,7 +29,7 @@ const SCHEMA = [
     path: "/download/",
     description: "Free voice dictation app that types what you say into any application, with on-device speech recognition.",
     category: "ProductivityApplication",
-    os: "Windows 10, Windows 11, Linux",
+    os: "Windows 10, Windows 11, macOS, Linux",
     features: ["Global dictation shortcut", "Types into any app", "Filler word removal and voice commands", "On-device speech recognition", "Snippets and personal dictionary"],
   }),
   breadcrumbSchema("Download", "/download/"),

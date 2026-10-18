@@ -3,28 +3,57 @@
 Press **Ctrl+Shift+Space** (⌘+Shift+Space on macOS), talk, and Kelados types into whatever app has focus: Slack, VS Code,
 Word, your browser, a terminal running Claude Code. Press it again to stop.
 
+## Install or update
+
+```powershell
+irm https://kelados.in/install.ps1 | iex          # Windows (PowerShell)
+```
+
+```bash
+curl -fsSL https://kelados.in/install.sh | sh      # macOS and Linux (Terminal)
+```
+
+Or download an installer from [kelados.in/download](https://kelados.in/download/). Installed apps also offer updates from
+a notification and the tray menu; both paths run the same script and keep your settings and history.
+
+macOS: the app isn't notarized by Apple yet, so `install.sh` signs it locally (ad hoc, no Apple account needed) and clears
+the download flag. Allow **Microphone** and **Accessibility** when asked.
+
+## Shortcuts
+
+| Shortcut | Does |
+|---|---|
+| Ctrl+Shift+Space | Start or stop dictation |
+| Ctrl+Alt+S | Read the selected text aloud (again to stop) |
+| Ctrl+Alt+R | Rewind: type what you said in the last 30 seconds (only while Rewind is on in Settings) |
+
+While dictating, a phrase said on its own can edit what's already typed ("no no, make it Saturday", "change coffee to
+tea", "make that a bullet list") or press a key ("press enter", "send it", "select all").
+
 ## How it works
 
 ```
 global shortcut ──▶ overlay window (the site's /desktop/ page, non-focusable, always on top)
-                     mic → AudioWorklet → VAD → Moonshine/Whisper (WebGPU) → cleanup rules
-                     │ window.kelados.insert(text)   (preload.cjs, the only bridge)
+                     mic → AudioWorklet → VAD → Moonshine / Whisper → cleanup rules → voice edits
+                     │ window.kelados.insert / replace / key   (preload.cjs, the only bridge)
                      ▼
 main.js ──▶ keys.js: clipboard ← text, OS paste keystroke, clipboard restored
+                     (voice edits: Backspace over Kelados' own text, then paste the fix)
 ```
 
-- The overlay is the hosted web page, so the desktop app always has the latest models, fixes and settings, and shares
-  the model cache and preferences with **Tray → Settings** (the `/dictate/` page in an app window).
+- The overlay and the main window (`/app/`: history, dictionary, meeting notes, style, settings, help) are hosted web
+  pages, so the app always has the latest models and fixes. They share one origin, so settings apply live.
 - Typing uses the platform's own tools, with no native modules: a long-lived PowerShell `SendKeys` on Windows, `osascript` on
-  macOS (allow Kelados under Privacy & Security → Accessibility), `xdotool` on Linux.
-- Saying "scratch that" sends an undo keystroke to the target app.
-- First launch opens a welcome window (shortcut, a box to try it, macOS permission prompts). Clicking the tray icon reopens it.
-- Models download once into the app's own storage and load from disk on every later launch (about 3 s). Only the
-  overlay holds a model in memory; the welcome and settings windows don't load a second copy.
-- Updates: the UI is the live website, so it is always current. The native shell checks GitHub Releases on launch and
-  daily, then offers the new version from a notification and the tray menu.
-- Security: the bridge only accepts messages from the Kelados origin, windows can't navigate elsewhere, and the
-  microphone is only granted to that origin.
+  macOS, `xdotool` on Linux. The clipboard is restored after every paste.
+- Voice edits only reach back within the current dictation, and rely on the cursor still being where Kelados left it.
+- Speech runs multi-threaded on the CPU (the site is cross-origin isolated), which on laptops is faster and lighter than
+  WebGPU. The read-aloud voice loads on first use and is released after 10 idle minutes.
+- Rewind keeps the last 30 seconds of microphone audio in memory only. It is off by default because the microphone stays
+  on while it's enabled.
+- Updates: `update.js` checks GitHub Releases on launch and daily; installing runs the public install script, which
+  closes the app, installs over it and starts the new version.
+- Security: the bridge only accepts messages from the Kelados origin, windows can't navigate elsewhere, the microphone is
+  only granted to that origin, and each listener is registered once (a page reloading can't double it).
 
 ## Develop
 
@@ -37,10 +66,12 @@ npm test
 npm run dist    # installer for this OS in dist/
 ```
 
-Releases are built for Windows and Linux (macOS is held back until it can be notarized) by `.github/workflows/release.yml` when a `v*` tag is pushed.
+Releases for Windows, Linux and macOS (unsigned zip) are built by `.github/workflows/release.yml` when a `v*` tag is pushed.
 
 ## Known limits
 
 - Toggle only: Electron's global shortcuts can't detect key release, so there's no hold-to-talk yet.
 - Needs the site to be reachable when it starts. Models are cached after the first run.
+- Voice edits count characters by code point; apps that delete an emoji sequence or a Devanagari cluster with one
+  Backspace can lose one extra character.
 - Linux terminals paste with Ctrl+Shift+V; most other apps work with the default Ctrl+V.

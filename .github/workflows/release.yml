@@ -29,9 +29,10 @@ jobs:
   desktop:
     needs: test
     strategy:
+      fail-fast: false # one platform failing (e.g. the macOS build) must not cancel the others
       matrix:
-        # macos-latest returns once the app can be notarized (Apple Developer Program).
-        os: [windows-latest, ubuntu-latest]
+        # macOS ships as an unsigned zip; kelados.in/install.sh signs it ad hoc on the user's Mac (no Apple account needed).
+        os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -47,10 +48,12 @@ jobs:
           path: |
             desktop/dist/Kelados-Setup.exe
             desktop/dist/Kelados.AppImage
+            desktop/dist/Kelados-mac.zip
           if-no-files-found: ignore
 
   publish:
     needs: desktop
+    if: ${{ !cancelled() }} # publish whatever built, even if one platform failed
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
