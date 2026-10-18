@@ -13,7 +13,7 @@ const API = GITHUB_URL.replace("https://github.com/", "https://api.github.com/re
 type Platform = "windows" | "mac" | "linux";
 export const BUILDS: Record<Platform, { label: string; file: string; note: string }> = {
   windows: { label: "Windows", file: "Kelados-Setup.exe", note: "Windows 10 and 11 · 64-bit" },
-  mac: { label: "Mac", file: "Kelados-mac.zip", note: "macOS 11+ · Apple silicon and Intel" },
+  mac: { label: "Mac", file: "Kelados-mac.zip", note: "macOS 13 Ventura or later · Apple silicon and Intel" },
   linux: { label: "Linux", file: "Kelados.AppImage", note: "AppImage · x64" },
 };
 // The same scripts install a fresh copy or update an existing one, keeping settings and history.

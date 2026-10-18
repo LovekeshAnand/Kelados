@@ -1,0 +1,36 @@
+# Checks the published Mac app on a real Mac (Apple silicon), installed exactly the way users do it.
+# Run it from the Actions tab: "Mac install check" → Run workflow. It never builds or publishes anything.
+name: Mac install check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mac:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install like a user (curl | sh from kelados.in)
+        run: curl -fsSL https://kelados.in/install.sh | sh
+
+      - name: Find the installed app
+        run: |
+          for d in /Applications "$HOME/Applications"; do [ -d "$d/Kelados.app" ] && echo "APP=$d/Kelados.app" >> "$GITHUB_ENV"; done
+          test -n "$(grep APP= "$GITHUB_ENV")"
+
+      - name: Signed (ad hoc) and not quarantined
+        run: |
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          ! xattr -p com.apple.quarantine "$APP" 2>/dev/null
+          lipo -archs "$APP/Contents/MacOS/Kelados"
+
+      - name: Starts and stays running
+        run: |
+          sleep 10
+          pgrep -x Kelados
+
+      - name: Smoke test (loads the overlay from kelados.in, checks the bridge)
+        run: |
+          pkill -x Kelados || true
+          sleep 3
+          "$APP/Contents/MacOS/Kelados" --smoke
