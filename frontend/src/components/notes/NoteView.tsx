@@ -7,6 +7,7 @@ import { notesDb, type Note } from "@/lib/local-db";
 import { isPersonal, noteToMarkdown, touch, transcriptText } from "@/lib/notes";
 import { summarize } from "@/lib/speech/summary";
 import { clock, toSrt } from "@/lib/subtitles";
+import { copyText } from "@/lib/clipboard";
 
 const SECTIONS = [["highlights", "Highlights"], ["actions", "Action items"], ["decisions", "Decisions"], ["questions", "Open questions"]] as const;
 
@@ -49,7 +50,7 @@ export function NoteView({ initial, onDelete }: { initial: Note; onDelete: () =>
             {personal ? ` · ${note.scratch.split(/\s+/).filter(Boolean).length} words` : ` · ${note.lines.length} lines`}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button className={btn("primary", "sm")} onClick={() => navigator.clipboard.writeText(noteToMarkdown(note))}>Copy markdown</button>
+            <button className={btn("primary", "sm")} onClick={() => copyText(noteToMarkdown(note))}>Copy markdown</button>
             <button className={btn("secondary", "sm")} onClick={() => download(new Blob([noteToMarkdown(note)]), `${name}.md`)}>.md</button>
             {personal ? <>
               <button className={btn("secondary", "sm")} onClick={() => download(new Blob([note.scratch]), `${name}.txt`)}>.txt</button>

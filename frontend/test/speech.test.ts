@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { cleanup, joinText, keyCommand } from "../src/lib/speech/cleanup.ts";
 import { personalize, train } from "../src/lib/speech/learn.ts";
 import { bulletize, voiceEdit } from "../src/lib/speech/edit.ts";
+import { diffWords, refine, toBullets, toEmail, toNumbered, toParagraph } from "../src/lib/speech/format.ts";
 import { createVad, downsample, isHallucination, splitAtSilence, RATE, type Segment } from "../src/lib/speech/vad.ts";
 
 const c = (s: string, o = {}) => cleanup(s, o).text;
@@ -163,4 +164,34 @@ test("spoken addresses and stray quotes", () => {
   assert.equal(c("I'll meet you at the office."), "I'll meet you at the office.");
   assert.equal(c('He said "hello" to me.'), 'He said "hello" to me.');
   assert.equal(c('"Hey Priya, can you send it?'), "Hey Priya, can you send it?");
+});
+
+test("radial menu formats", () => {
+  assert.equal(toBullets("Order eggs, milk and coffee."), "- Order eggs\n- Milk\n- Coffee");
+  assert.equal(toBullets("Call Sam about the deck. Book the room. Send the invite."), "- Call Sam about the deck.\n- Book the room.\n- Send the invite.");
+  assert.equal(toNumbered("- Eggs\n- Milk"), "1. Eggs\n2. Milk");
+  assert.equal(toNumbered("Shopping list: eggs, milk and coffee."), "Shopping list:\n1. Eggs\n2. Milk\n3. Coffee");
+  assert.equal(toParagraph("- Eggs\n- Milk\n- Coffee"), "Eggs. Milk. Coffee.");
+  assert.equal(toEmail("can we meet friday"), "Hi,\n\ncan we meet friday.\n\nThanks,");
+  assert.equal(refine("um so i think the the launch went well"), "I think the launch went well.");
+  assert.equal(refine("- uh eggs\n- milk"), "- Eggs\n- Milk");
+  assert.equal(refine("Hi"), "Hi");
+});
+
+test("refine tightens speech into writing without inventing words", () => {
+  assert.equal(refine("Okay so basically we are gonna ship the update on friday, and then we will email the beta testers in order to get feedback."),
+    "We are going to ship the update on Friday. Then we will email the beta testers to get feedback.");
+  assert.equal(refine("I think the launch went really very well and honestly the team was able to fix most of the bugs."),
+    "I think the launch went very well and the team could fix most of the bugs.");
+  assert.equal(refine("I like this design."), "I like this design.");
+  assert.equal(refine("It was, like, huge."), "It was huge.");
+  assert.equal(refine("Hey Priya, can you send me the deck?"), "Hey Priya, can you send me the deck?");
+});
+
+test("word diff for suggestions", () => {
+  const a = "we are gonna ship it", b = "We are going to ship it";
+  const d = diffWords(a, b);
+  assert.equal(d.filter((p) => p.kind !== "add").map((p) => p.text).join(""), a); // removing the additions gives the original
+  assert.equal(d.filter((p) => p.kind !== "del").map((p) => p.text).join(""), b); // removing the deletions gives the suggestion
+  assert.deepEqual(d.filter((p) => p.kind === "del").map((p) => p.text.trim()), ["we", "gonna"]);
 });

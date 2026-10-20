@@ -1,11 +1,11 @@
 // Kelados desktop: a tray app with a global shortcut that types what you say into whatever app is focused.
 // The overlay is the website's /desktop/ page, so the desktop app shares the web app's models, cache and settings.
-import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, session, shell, systemPreferences, Tray } from "electron";
+import { app, BrowserWindow, clipboard, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, session, shell, systemPreferences, Tray } from "electron";
 import { spawn } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dispose, pressKey, replaceTyped, selectedText, typeText, undo, VOICE_KEYS } from "./keys.js";
+import { dispose, nothingToTypeInto, pressKey, replaceTyped, selectedText, typeText, undo, VOICE_KEYS } from "./keys.js";
 import { latestIfNewer } from "./update.js";
 
 const urlArg = process.argv.find((a) => a.startsWith("--url="))?.slice(6); // `npm run dev` points at localhost
@@ -21,6 +21,9 @@ const asset = (p) => fileURLToPath(new URL(p, import.meta.url));
 const TITLE_BAR = { dark: { color: "#09090a", symbolColor: "#a1a1aa" }, light: { color: "#f1f1f2", symbolColor: "#52525b" } };
 
 let overlay, win, tray, hideTimer;
+// The sticky note: where dictation goes when there's no text field in front (the desktop, the taskbar, no window).
+let note = null, noteReady = false, noteMode = false;
+const noteQueue = [];
 let status = "idle";
 let update = null; // newer release tag, once found
 
@@ -96,7 +99,31 @@ async function firstRun() {
   openWelcome();
 }
 
-const toggle = () => overlay?.webContents.send("toggle");
+/** Open (or bring back) the sticky note. Text reaches it over IPC, so the clipboard is never touched. */
+function openNote() {
+  if (!note || note.isDestroyed()) {
+    const { workArea } = screen.getPrimaryDisplay();
+    note = new BrowserWindow({ width: 420, height: 360, minWidth: 300, minHeight: 220, frame: false, alwaysOnTop: true, title: "Kelados note",
+      x: workArea.x + workArea.width - 444, y: workArea.y + workArea.height - 560, backgroundColor: TITLE_BAR.dark.color,
+      icon: asset("./build/icon.png"), webPreferences: { preload: asset("./preload.cjs"), sandbox: true, contextIsolation: true } });
+    lockDown(note);
+    noteReady = false;
+    note.on("closed", () => { note = null; noteReady = false; noteMode = false; noteQueue.length = 0; });
+    note.loadURL(`${BASE}/app/note/`);
+  }
+  note.show();
+  note.focus();
+}
+const toNote = (channel, ...args) => (noteReady ? note.webContents.send(channel, ...args) : noteQueue.push([channel, args]));
+
+const toggle = async () => {
+  // Starting a dictation: with nowhere to type (or the note itself in front), the words go to the sticky note.
+  if (status === "idle") {
+    noteMode = Boolean(note && !note.isDestroyed() && note.isFocused()) || (await nothingToTypeInto());
+    if (noteMode) openNote();
+  }
+  overlay?.webContents.send("toggle");
+};
 
 function setStatus(s) {
   status = s;
@@ -113,6 +140,7 @@ function refreshTray() {
     { label: status === "idle" ? "Start dictation" : "Stop dictation", accelerator: SHORTCUT, click: toggle },
     { type: "separator" },
     { label: "Open Kelados…", click: openWelcome },
+    { label: "New note", click: openNote },
     { label: "Settings…", click: openSettings },
     { label: "Open the Kelados website", click: () => shell.openExternal(BASE) },
     { label: "Launch at login", type: "checkbox", checked: app.getLoginItemSettings().openAtLogin,
@@ -125,8 +153,10 @@ function refreshTray() {
 app.whenReady().then(() => {
   // Microphone only for our own pages; everything else is refused.
   const ours = (url) => { try { return new URL(url).origin === ORIGIN; } catch { return false; } };
-  session.defaultSession.setPermissionRequestHandler((wc, perm, cb, d) => cb(perm === "media" && ours(d.requestingUrl || wc.getURL())));
-  session.defaultSession.setPermissionCheckHandler((_wc, perm, origin) => perm === "media" && origin === ORIGIN);
+  // Microphone and writing to the clipboard (Copy buttons), only for our own pages; everything else is refused.
+  const ALLOWED = new Set(["media", "clipboard-sanitized-write"]);
+  session.defaultSession.setPermissionRequestHandler((wc, perm, cb, d) => cb(ALLOWED.has(perm) && ours(d.requestingUrl || wc.getURL())));
+  session.defaultSession.setPermissionCheckHandler((_wc, perm, origin) => ALLOWED.has(perm) && origin === ORIGIN);
 
   app.dock?.hide();
   createOverlay();
@@ -143,7 +173,8 @@ app.whenReady().then(() => {
       detail: "Quit that app (or change its shortcut) and restart Kelados. You can still start dictation from the tray menu." });
   }
   globalShortcut.register(READ, async () => overlay.webContents.send("read", await selectedText()));
-  firstRun();
+  if (process.argv.includes("--note")) openNote(); else firstRun();
+  nothingToTypeInto(); // starts the helper now, so the first shortcut press isn't half a second slower
   setTimeout(checkForUpdate, 15_000);
   setInterval(checkForUpdate, 24 * 3600_000);
 });
@@ -172,22 +203,40 @@ async function checkForUpdate() {
   }
 }
 
-ipcMain.on("insert", (e, text) => { if (fromUs(e) && text) typeText(text); });
-ipcMain.on("undo", (e) => { if (fromUs(e)) undo(); });
+ipcMain.on("insert", (e, text) => { if (fromUs(e) && text) (noteMode ? toNote("note-text", text) : typeText(text)); });
+ipcMain.on("undo", (e) => { if (fromUs(e)) (noteMode ? toNote("note-undo") : undo()); });
+ipcMain.on("note-ready", (e) => {
+  if (!fromUs(e) || !note || e.sender !== note.webContents) return;
+  noteReady = true;
+  for (const [channel, args] of noteQueue.splice(0)) note.webContents.send(channel, ...args);
+});
 ipcMain.on("status", (e, s) => { if (fromUs(e) && !SMOKE) setStatus(s); });
 ipcMain.on("theme", (e, t) => {
   if (fromUs(e) && win && !win.isDestroyed() && process.platform !== "darwin" && TITLE_BAR[t]) win.setTitleBarOverlay(TITLE_BAR[t]);
 });
 ipcMain.on("replace", (e, count, text) => {
-  if (fromUs(e) && Number.isInteger(count) && count > 0 && count <= 20000) replaceTyped(count, String(text ?? ""));
+  if (!fromUs(e) || !Number.isInteger(count) || count <= 0 || count > 20000) return;
+  if (noteMode) toNote("note-replace", count, String(text ?? "")); else replaceTyped(count, String(text ?? ""));
 });
-ipcMain.on("key", (e, name) => { if (fromUs(e) && VOICE_KEYS.includes(name)) pressKey(name); });
+// WhatsApp: the desktop app if it's installed (it registers whatsapp:// links), otherwise WhatsApp Web in the browser.
+ipcMain.on("copy", (e, text) => { if (fromUs(e)) clipboard.writeText(String(text)); });
+ipcMain.on("whatsapp", (e, text) => {
+  if (!fromUs(e)) return;
+  const msg = encodeURIComponent(String(text).slice(0, 4000));
+  shell.openExternal(app.getApplicationNameForProtocol("whatsapp://") ? `whatsapp://send?text=${msg}` : `https://web.whatsapp.com/send?text=${msg}`);
+});
+ipcMain.on("key", (e, name) => {
+  if (!fromUs(e) || !VOICE_KEYS.includes(name)) return;
+  if (noteMode) { if (name === "enter") toNote("note-text", "\n"); } // other keys mean nothing on a note
+  else pressKey(name);
+});
 ipcMain.on("rewind-enabled", (e, on) => {
   if (!fromUs(e)) return;
   if (on && !globalShortcut.isRegistered(REWIND)) globalShortcut.register(REWIND, () => overlay.webContents.send("rewind"));
   if (!on && globalShortcut.isRegistered(REWIND)) globalShortcut.unregister(REWIND);
 });
 
-app.on("second-instance", openWelcome); // launching it again (Start menu, Dock) brings the window up
+// Launching it again (Start menu, Dock) brings the window up; `Kelados --note` opens a new sticky note instead.
+app.on("second-instance", (_e, argv) => (argv.includes("--note") ? openNote() : openWelcome()));
 app.on("window-all-closed", () => {}); // tray app: keep running with no windows
 app.on("will-quit", () => { globalShortcut.unregisterAll(); dispose(); });

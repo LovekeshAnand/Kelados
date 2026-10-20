@@ -82,6 +82,34 @@
   --color-accent: #c93b7a;
   --color-accent-soft: #c93b7a12;
 }
+/* Frosted glass for floating UI (the action wheel): translucent, blurred, with a bright top edge. */
+.app-ui {
+  --glass: rgb(26 26 32 / 0.55);
+  --glass-strong: rgb(34 34 42 / 0.72);
+  --glass-line: rgb(255 255 255 / 0.12);
+  --glass-edge: rgb(255 255 255 / 0.1);
+  --glass-shadow: 0 30px 70px -20px rgb(0 0 0 / 0.6);
+}
+:root[data-theme="light"] .app-ui {
+  --glass: rgb(255 255 255 / 0.5);
+  --glass-strong: rgb(255 255 255 / 0.78);
+  --glass-line: rgb(20 20 40 / 0.09);
+  --glass-edge: rgb(255 255 255 / 0.9);
+  --glass-shadow: 0 30px 70px -24px rgb(40 20 60 / 0.35);
+}
+@utility glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge);
+  backdrop-filter: blur(22px) saturate(1.7);
+}
+@keyframes kel-wheel-in { from { opacity: 0; transform: scale(0.72) rotate(-14deg); } to { opacity: 1; transform: none; } }
+@keyframes kel-band-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes kel-pop {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 /* Website components shown inside the app (notes, snippet editor, storage) take the app's plain type. */
 .app-ui .display { font-family: inherit; text-transform: none; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; }
 .app-ui .label { font-family: inherit; text-transform: none; letter-spacing: 0; font-weight: 500; }

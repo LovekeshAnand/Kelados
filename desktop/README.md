@@ -27,6 +27,10 @@ the download flag. Allow **Microphone** and **Accessibility** when asked.
 | Ctrl+Alt+S | Read the selected text aloud (again to stop) |
 | Ctrl+Alt+R | Rewind: type what you said in the last 30 seconds (only while Rewind is on in Settings) |
 
+With nothing to type into (the desktop or taskbar in front), the shortcut opens a **sticky note** instead and the words
+go there directly, without touching the clipboard. `Kelados --note` (or **Tray → New note**) opens one any time. Right-click
+a note, or use **Actions** on a past dictation, for the action wheel: Format, Convert (PDF, JPG, Word), Share and Listen.
+
 While dictating, a phrase said on its own can edit what's already typed ("no no, make it Saturday", "change coffee to
 tea", "make that a bullet list") or press a key ("press enter", "send it", "select all").
 

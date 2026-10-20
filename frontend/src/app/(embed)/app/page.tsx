@@ -8,9 +8,12 @@ import { ModelStorage } from "@/components/ModelStorage";
 import { LiveSession } from "@/components/notes/LiveSession";
 import { NoteView } from "@/components/notes/NoteView";
 import { SnippetEditor } from "@/components/SnippetEditor";
+import { RadialMenu } from "@/components/RadialMenu";
+import { ReaderBar } from "@/components/ReaderBar";
 import { Spinner } from "@/components/ui";
 import { Wordmark } from "@/components/Wordmark";
 import { useAuth } from "@/lib/api";
+import { copyText } from "@/lib/clipboard";
 import { REWIND_SECONDS } from "@/lib/engine/rewind";
 import { STT_MODELS } from "@/lib/engine/stt";
 import { dictationsDb, notesDb, onDictationsChanged, type Dictation, type Note } from "@/lib/local-db";
@@ -19,6 +22,7 @@ import { cleanup } from "@/lib/speech/cleanup";
 import { LANGUAGES, useDictateSettings } from "@/lib/speech/settings";
 import { useSnippets } from "@/lib/speech/snippets";
 import { clock } from "@/lib/subtitles";
+import type { ActionResult } from "@/lib/textActions";
 import { useTheme } from "@/lib/theme";
 
 type Section = "home" | "dictionary" | "notes" | "style" | "settings" | "help";
@@ -198,6 +202,18 @@ function Home({ items, remove }: { items: Dictation[]; remove: (id: string) => v
   const { user } = useAuth();
   const { settings, update } = useDictateSettings();
   const [q, setQ] = useState("");
+  const [menu, setMenu] = useState<{ x: number; y: number; text: string } | null>(null);
+  const [toast, setToast] = useState("");
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
+  // History is a record, so a Format result is copied rather than overwriting what you dictated.
+  const onResult = (r: ActionResult) => {
+    if (r.text !== undefined) copyText(r.text).then(() => setToast(`${r.message} (copied)`), () => setToast(r.message));
+    else if (r.message) setToast(r.message);
+  };
   const [now] = useState(Date.now);
   const shown = q ? items.filter((d) => d.text.toLowerCase().includes(q.toLowerCase())) : items;
   const groups = useMemo(() => {
@@ -240,7 +256,8 @@ function Home({ items, remove }: { items: Dictation[]; remove: (id: string) => v
                         <time className="text-[11px] font-semibold tabular-nums text-subtle">{new Date(d.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time>
                         <p className="mt-1 whitespace-pre-wrap text-[14.5px] leading-relaxed">{d.text}</p>
                         <div className="absolute right-3 top-3 flex rounded-xl border border-line bg-surface opacity-0 shadow-sm transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                          <button className={ghost} onClick={() => navigator.clipboard.writeText(d.text)}>Copy</button>
+                          <button className={ghost} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setMenu({ x: r.left + r.width / 2, y: r.bottom + 120, text: d.text }); }}>Actions</button>
+                          <button className={ghost} onClick={() => copyText(d.text)}>Copy</button>
                           <button className={ghost} onClick={() => remove(d.id)}>Delete</button>
                         </div>
                       </li>
@@ -265,6 +282,9 @@ function Home({ items, remove }: { items: Dictation[]; remove: (id: string) => v
           </div>
         </aside>
       </div>
+      <ReaderBar className="fixed bottom-6 left-1/2 z-40 w-[min(560px,calc(100%-48px))] -translate-x-1/2" />
+      {menu && <RadialMenu text={menu.text} at={{ x: menu.x, y: menu.y }} onResult={onResult} onClose={() => setMenu(null)} />}
+      {toast && <div role="status" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-fg px-4 py-2 text-xs font-semibold text-bg shadow-lg">{toast}</div>}
     </>
   );
 }
@@ -424,7 +444,7 @@ function Settings() {
       <Heading>Updates</Heading>
       <div className={panel}>
         <Row title="Update Kelados" control={
-          <button onClick={() => { navigator.clipboard.writeText(updateCmd); setCopied(true); }} className="rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-elevated">{copied ? "Copied" : "Copy command"}</button>}>
+          <button onClick={() => { copyText(updateCmd); setCopied(true); }} className="rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-elevated">{copied ? "Copied" : "Copy command"}</button>}>
           Kelados tells you when an update is ready and installs it from the tray menu. To update by hand, run this in {os === "windows" ? "PowerShell" : "Terminal"}:
           <code className="mt-2 block rounded-xl bg-surface px-3 py-2 font-mono text-xs text-fg">{updateCmd}</code>
         </Row>

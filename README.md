@@ -45,6 +45,8 @@ Hosted voice platforms charge per character because **their** GPUs generate ever
 | **Hindi and Hinglish** | English on Moonshine; Hinglish (Hindi + English, written in English letters) and Devanagari Hindi on models tuned for Indian speech; 99 languages on Whisper. |
 | **Rewind** | Said something worth keeping before you pressed the shortcut? Ctrl+Alt+R types the last 30 seconds. The audio is held in memory only, never saved or sent. Off by default. |
 | **Read aloud anywhere** | Select text in any app and press Ctrl+Alt+S to hear it. |
+| **Sticky note** | Press the shortcut on the desktop (no text field in front) and a sticky note opens and fills as you talk, saved to your notes. `Kelados --note` opens one from a pinned shortcut. |
+| **Action wheel** | On a note or any past dictation: **Format** (bullets, numbered, paragraph, email, refine), **Convert** (PDF, JPG, Word, text), **Share** (email, WhatsApp, copy) and **Listen** (read aloud, save as audio). All on your device. |
 | **Notetaker** | Live meeting transcripts with you and the other participants labelled separately (mic + shared tab audio), then highlights, action items, decisions and open questions. Export to Markdown, TXT or SRT. No bot joins your call. |
 | **Desktop app** | One shortcut (Ctrl+Shift+Space) types what you say into any app: Slack, VS Code, Word, terminals, Claude Code. Windows, macOS and Linux, with dictation history, a dictionary, style settings, meeting notes and a dark or light theme. |
 | **Integrations** | A Chrome extension for Google Docs, Gmail and any web text box; a Microsoft Word add-in; an MCP server so Claude Code can speak. |

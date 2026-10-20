@@ -15,5 +15,14 @@ contextBridge.exposeInMainWorld("kelados", {
   key: (name) => ipcRenderer.send("key", String(name)),
   replace: (count, text) => ipcRenderer.send("replace", Math.floor(Number(count)), String(text)),
   theme: (t) => ipcRenderer.send("theme", String(t)),
+  whatsapp: (text) => ipcRenderer.send("whatsapp", String(text)),
+  copy: (text) => ipcRenderer.send("copy", String(text)),
+  // The sticky note window: dictated text, "scratch that", and voice edits, routed here instead of being typed.
+  onNote: (cb) => {
+    on("note-text", (_e, text) => cb({ type: "text", text: String(text) }));
+    on("note-undo", () => cb({ type: "undo" }));
+    on("note-replace", (_e, count, text) => cb({ type: "replace", count: Number(count), text: String(text) }));
+    ipcRenderer.send("note-ready");
+  },
   setRewind: (on) => ipcRenderer.send("rewind-enabled", !!on),
 });
