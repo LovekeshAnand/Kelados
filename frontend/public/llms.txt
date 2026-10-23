@@ -20,6 +20,10 @@ Key facts:
 - [Voice library](https://kelados.in/voices/): previews of all 28 voices.
 - [Integrations](https://kelados.in/integrations/): Chrome extension (Google Docs, Gmail, any text box; Alt+Shift+D), Word add-in, Claude Code.
 - [Compare](https://kelados.in/compare/): Kelados vs Wispr Flow, Otter.ai and ElevenLabs.
+- [Wispr Flow alternative](https://kelados.in/wispr-flow-alternative/): free, open-source, offline dictation for Windows, Mac and Linux. Wispr Flow's free plan is limited to 2,000 words a week on desktop and Pro costs $15/month (Oct 2026); Wispr Flow processes speech in the cloud and has no Linux app.
+- [ElevenLabs alternative](https://kelados.in/elevenlabs-alternative/): unlimited English text to speech, free for commercial use, no sign-up. ElevenLabs' free plan has 10,000 credits a month (Oct 2026). Kelados has no voice cloning and English voices only.
+- [Otter.ai alternative](https://kelados.in/otter-alternative/): meeting notes with no bot joining the call and no minute limits. Otter Basic allows 300 minutes a month, 30 per conversation (Oct 2026).
+- [Voice typing](https://kelados.in/voice-typing/): free voice typing in English, [Hindi and Hinglish](https://kelados.in/voice-typing/hindi/), [Tamil](https://kelados.in/voice-typing/tamil/), [Marathi](https://kelados.in/voice-typing/marathi/), [Telugu](https://kelados.in/voice-typing/telugu/), [Bengali](https://kelados.in/voice-typing/bengali/), [Punjabi](https://kelados.in/voice-typing/punjabi/), [Urdu](https://kelados.in/voice-typing/urdu/) and 99 languages via Whisper. Hindi uses a Whisper model fine-tuned for Hindi; Hinglish uses a model tuned for Indian speech that writes in English letters.
 
 ## Developers
 

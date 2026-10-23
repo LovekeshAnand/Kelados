@@ -19,12 +19,12 @@ export const BUILDS: Record<Platform, { label: string; file: string; note: strin
 // The same scripts install a fresh copy or update an existing one, keeping settings and history.
 export const INSTALL_CMD = { windows: "irm https://kelados.in/install.ps1 | iex", unix: "curl -fsSL https://kelados.in/install.sh | sh" };
 
-function Command({ cmd }: { cmd: string }) {
+function Command({ cmd, platform }: { cmd: string; platform: Platform }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="flex items-center gap-2 rounded-sm border border-line bg-bg py-1.5 pl-3 pr-1.5">
       <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-[13px] text-fg">{cmd}</code>
-      <button onClick={() => { navigator.clipboard.writeText(cmd); setCopied(true); }} className={btn("secondary", "sm")}>{copied ? "Copied" : "Copy"}</button>
+      <button data-download={platform} data-method="script" onClick={() => { navigator.clipboard.writeText(cmd); setCopied(true); }} className={btn("secondary", "sm")}>{copied ? "Copied" : "Copy"}</button>
     </div>
   );
 }
@@ -94,9 +94,9 @@ export function DownloadPanel() {
           {release === null ? (
             <span className="flex items-center gap-2 text-sm text-muted"><Spinner /> Checking the latest version…</span>
           ) : main && target === "mac" ? (
-            <div className="w-full max-w-md"><Command cmd={INSTALL_CMD.unix} /></div>
+            <div className="w-full max-w-md"><Command cmd={INSTALL_CMD.unix} platform="mac" /></div>
           ) : main ? (
-            <a href={main.browser_download_url} className={btn("primary", "lg")}>Download for {BUILDS[target].label}</a>
+            <a href={main.browser_download_url} data-download={target} className={btn("primary", "lg")}>Download for {BUILDS[target].label}</a>
           ) : (
             <span className="max-w-xs text-sm text-muted">
               The first {BUILDS[target].label} build is on its way. Until then, <Link href="/dictate/" className="text-accent hover:underline">dictate in the browser</Link> or build it from source below.
@@ -125,9 +125,9 @@ export function DownloadPanel() {
           <h3 className="label text-sm text-accent">Install or update with one command</h3>
           <p className="text-muted">Already have Kelados? Run this to update it in place; your settings and history stay. It also works for a fresh install.</p>
           <p className="text-xs text-subtle">Windows (PowerShell)</p>
-          <Command cmd={INSTALL_CMD.windows} />
+          <Command cmd={INSTALL_CMD.windows} platform="windows" />
           <p className="text-xs text-subtle">Mac and Linux (Terminal)</p>
-          <Command cmd={INSTALL_CMD.unix} />
+          <Command cmd={INSTALL_CMD.unix} platform={target === "linux" ? "linux" : "mac"} />
           <h3 className="label pt-2 text-sm text-accent">Good to know</h3>
           <p className="text-muted">Free, no account, no limits. Speech is recognised on your computer; the first launch downloads the speech model once (about a minute).</p>
           <p className="text-muted">The app always uses the newest Kelados models and fixes, so you rarely need to reinstall.</p>

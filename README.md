@@ -93,8 +93,7 @@ kelados/
 │   └── test/                 node --test suites for the pure speech logic
 ├── backend/                  Node.js · Express 5 · MongoDB
 │   └── src/
-│       ├── app.js            Express app (middleware + routes)
-│       ├── index.js          serverless entry · server.js: local listener
+│       ├── app.js            Express app (middleware + routes), default export is the Vercel entry · server.js: local listener
 │       ├── config/           env, database connection
 │       ├── models/           one Mongoose model per file
 │       ├── controllers/      request handlers per resource

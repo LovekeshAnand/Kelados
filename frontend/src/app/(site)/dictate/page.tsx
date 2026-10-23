@@ -39,6 +39,12 @@ export default function DictatePage() {
     dictationsDb.list().then(setHistory).catch(() => {});
   }, []);
 
+  // ?lang=hi (from the language landing pages) preselects that language and its engine.
+  const langParam = useSyncExternalStore(() => () => {}, () => new URLSearchParams(location.search).get("lang"), () => null);
+  useEffect(() => {
+    if (langParam && langParam !== settings.language && LANGUAGES.some(([code]) => code === langParam)) setLanguage(langParam);
+  }, [langParam]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const textRef = useRef(text);
   const commandsRef = useRef(settings.commands);
   useLayoutEffect(() => { textRef.current = text; commandsRef.current = settings.commands; });
@@ -98,6 +104,7 @@ export default function DictatePage() {
       <PageHero kicker="Dictation" title="Speak." accent="It writes.">
         Talk naturally and get clean, punctuated text. Fillers vanish, &ldquo;scratch that&rdquo; works, and your snippets expand.
         Everything runs on your device. Want it in every app? <Link href="/download/" className="text-accent underline-offset-4 hover:underline">Get the desktop app</Link>.
+        Speak another language? <Link href="/voice-typing/" className="text-accent underline-offset-4 hover:underline">Hindi, Hinglish, Tamil and 99 more</Link>.
       </PageHero>
 
       <section className="mx-auto grid max-w-6xl gap-6 px-5 py-10 md:px-8 lg:grid-cols-[1.5fr_1fr]">

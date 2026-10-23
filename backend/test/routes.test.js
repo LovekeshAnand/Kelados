@@ -18,6 +18,7 @@ test("routes are mounted, protected, and validated", async (t) => {
   assert.equal(await call("GET", "/health"), 200);
   assert.equal(await call("GET", "/nope"), 404);
   assert.equal(await call("POST", "/auth/register", { email: "bad" }), 400);
+  assert.equal(await call("POST", "/downloads/amiga"), 400);
   for (const [method, path] of [
     ["GET", "/auth/me"], ["GET", "/keys"], ["DELETE", "/keys/x"], ["GET", "/projects"], ["PUT", "/projects/x"],
     ["GET", "/presets"], ["GET", "/lexicon"], ["PUT", "/snippets"], ["POST", "/usage"], ["GET", "/v1/workspace"],

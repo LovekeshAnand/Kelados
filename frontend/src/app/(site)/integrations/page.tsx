@@ -65,7 +65,7 @@ export default function IntegrationsPage() {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Block id="chrome" kicker="Chrome extension" title={<>Google Docs <span className="text-accent">and the web</span></>}
           aside={<Steps items={[
-            <>Download <a className="text-accent hover:underline" href={`${GITHUB_URL}/releases/latest/download/kelados-chrome.zip`}>kelados-chrome.zip</a> and unzip it.</>,
+            <>Download <a className="text-accent hover:underline" data-download="chrome" href={`${GITHUB_URL}/releases/latest/download/kelados-chrome.zip`}>kelados-chrome.zip</a> and unzip it.</>,
             <>Open <code className="font-mono">chrome://extensions</code>, turn on Developer mode, and click <b>Load unpacked</b> on the folder.</>,
             <>In Google Docs (or any text box), press <b>Alt+Shift+D</b> or click the Kelados icon.</>,
             <>Allow the microphone once. Talk; each phrase appears at your cursor. Close the small window to stop.</>,

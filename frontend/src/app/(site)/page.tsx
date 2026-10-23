@@ -49,7 +49,7 @@ const FAQ = [
   ["Does Kelados upload my voice or audio?", "No. Speech recognition (Moonshine and Whisper) and speech generation (Kokoro) run locally in your browser or the desktop app. Your audio never leaves your device; an account is only needed to sync projects and settings."],
   ["What is the best free alternative to Wispr Flow?", "Kelados offers the same core workflow as Wispr Flow (press a shortcut, talk, and clean text appears in any app, with filler words removed and spoken corrections understood) for free, with recognition on your device."],
   ["Can Kelados take meeting notes without a bot joining the call?", "Yes. The Kelados notetaker records your microphone and the audio of the meeting tab you share, so nothing joins your Zoom, Google Meet or Teams call. You get a live transcript, then highlights, action items and decisions."],
-  ["Which languages does Kelados support?", "Live dictation is tuned for English. File transcription supports 99 languages and can translate them into English. Text to speech has American and British English voices."],
+  ["Which languages does Kelados support?", "Dictation works in English, Hinglish (Hindi and English mixed, written in English letters) and Hindi in Devanagari, each with a model tuned for it, plus 99 more languages through Whisper, including Tamil, Marathi, Telugu and Bengali. File transcription supports 99 languages and can translate them into English. Text to speech has American and British English voices."],
   ["Does Kelados work offline?", "Yes, after the first use. Models download once (about 100 MB for dictation) and are stored on your device, so recognition and speech generation work without an internet connection."],
   ["Can I use Kelados with Claude Code?", "Yes. Use the desktop app to speak prompts into the terminal, and add the Kelados MCP server (claude mcp add kelados -- npx -y kelados mcp) so Claude Code can talk back."],
 ] as const;
@@ -106,6 +106,11 @@ export default function Home() {
         </p>
       </div>
 
+      <section className="mx-auto max-w-7xl px-5 pt-16 md:px-8">
+        <Kicker>Live numbers</Kicker>
+        <div className="mt-6"><LiveStats /></div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
         <Kicker>Everything voice</Kicker>
         <h2 className="display mt-4 max-w-3xl text-5xl md:text-6xl">One workspace for your voice, <span className="text-accent">in and out</span></h2>
@@ -144,7 +149,6 @@ export default function Home() {
           <p className="mt-5 max-w-md leading-relaxed text-muted">
             {VOICES.length} natural voices generated in your browser. No credits and no character caps. Try it right here.
           </p>
-          <div className="mt-10"><LiveStats /></div>
         </div>
         <HeroDemo />
       </section>

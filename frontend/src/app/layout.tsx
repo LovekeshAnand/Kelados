@@ -1,6 +1,7 @@
   import type { Metadata, Viewport } from "next";
 import { Antonio, Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { DownloadTracker } from "@/components/DownloadTracker";
 import { JsonLd } from "@/components/JsonLd";
 import { AuthProvider } from "@/lib/api";
 import { THEME_SCRIPT, ThemeSync } from "@/lib/theme";
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-dvh flex-col">
         <ThemeSync />
+        <DownloadTracker />
         <AuthProvider>{children}</AuthProvider>
 
         {/* Google Analytics — only injected when NEXT_PUBLIC_GA_ID is set */}

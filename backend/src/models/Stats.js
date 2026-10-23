@@ -8,4 +8,6 @@ export const Stats = models.Stats || model("Stats", new Schema({
   characters: { type: Number, default: 0 },
   seconds: { type: Number, default: 0 },
   generations: { type: Number, default: 0 },
+  // Download-button clicks on kelados.in, per platform. GitHub's own asset counts also include install scripts and updates.
+  downloads: { windows: Number, mac: Number, linux: Number, chrome: Number },
 }, { versionKey: false }));

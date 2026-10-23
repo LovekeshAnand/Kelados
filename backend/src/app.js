@@ -1,3 +1,4 @@
+// Vercel picks src/app.js as the entrypoint (ahead of index.js) and serves its default export.
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -22,3 +23,5 @@ export function createApp() {
 
   return app;
 }
+
+export default createApp();

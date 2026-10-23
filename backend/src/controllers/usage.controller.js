@@ -1,4 +1,5 @@
 import { Stats, Usage, User } from "../models/index.js";
+import { HttpError } from "../utils/HttpError.js";
 import { parse, today } from "../utils/helpers.js";
 import * as schema from "../validators/schemas.js";
 
@@ -23,8 +24,22 @@ export async function history(req, res) {
   res.json({ since, rows: rows.map(({ day, source, characters, seconds, generations }) => ({ day, source, characters, seconds, generations })), totals });
 }
 
+export const DOWNLOAD_PLATFORMS = ["windows", "mac", "linux", "chrome"];
+
+// Anonymous counter: no user, IP or device is stored, only "one more download for this platform".
+export async function download(req, res) {
+  const { platform } = req.params;
+  if (!DOWNLOAD_PLATFORMS.includes(platform)) throw new HttpError(400, "Unknown platform");
+  await Stats.updateOne({ _id: "global" }, { $inc: { [`downloads.${platform}`]: 1 } }, { upsert: true });
+  res.status(204).end();
+}
+
 export async function publicStats(_req, res) {
   const [s, users] = await Promise.all([Stats.findById("global").lean(), User.estimatedDocumentCount()]);
+  const downloads = Object.fromEntries(DOWNLOAD_PLATFORMS.map((p) => [p, s?.downloads?.[p] ?? 0]));
   res.set("cache-control", "public, max-age=60");
-  res.json({ characters: s?.characters ?? 0, seconds: s?.seconds ?? 0, generations: s?.generations ?? 0, users });
+  res.json({
+    characters: s?.characters ?? 0, seconds: s?.seconds ?? 0, generations: s?.generations ?? 0, users,
+    downloads: { ...downloads, total: Object.values(downloads).reduce((a, b) => a + b, 0) },
+  });
 }

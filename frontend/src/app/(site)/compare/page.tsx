@@ -14,9 +14,9 @@ export const metadata: Metadata = pageMeta({
 
 // Competitor columns describe each product's general model (cloud processing, paid plans with usage limits),
 // not prices, which change often. Each section links to the official site so readers can check current plans.
-const ROWS: { vs: string; site: string; kind: string; href: string; rows: [string, string, string][]; take: string }[] = [
+const ROWS: { vs: string; site: string; kind: string; href: string; page: string; rows: [string, string, string][]; take: string }[] = [
   {
-    vs: "Wispr Flow", site: "https://wisprflow.ai", kind: "Voice dictation", href: "/download/",
+    vs: "Wispr Flow", site: "https://wisprflow.ai", kind: "Voice dictation", href: "/download/", page: "/wispr-flow-alternative/",
     rows: [
       ["Dictate into any app with a shortcut", "Yes (Windows, Mac, Linux)", "Yes"],
       ["Filler removal and spoken corrections", "Yes, rule-based", "Yes, AI rewriting"],
@@ -27,7 +27,7 @@ const ROWS: { vs: string; site: string; kind: string; href: string; rows: [strin
     take: "Pick Kelados if you want free, private dictation everywhere. Wispr Flow's AI rewriting can reformat text more heavily (for example changing tone), which Kelados deliberately doesn't do: it never invents words you didn't say.",
   },
   {
-    vs: "Otter.ai", site: "https://otter.ai", kind: "Meeting notes", href: "/notes/",
+    vs: "Otter.ai", site: "https://otter.ai", kind: "Meeting notes", href: "/notes/", page: "/otter-alternative/",
     rows: [
       ["Live meeting transcript", "Yes", "Yes"],
       ["Joins your call as a bot", "No, it listens to your mic and meeting tab", "Can join as an assistant"],
@@ -38,7 +38,7 @@ const ROWS: { vs: string; site: string; kind: string; href: string; rows: [strin
     take: "Pick Kelados for private notes with no bot in the room and no minute caps. Otter is stronger at team features such as shared workspaces and identifying many individual speakers.",
   },
   {
-    vs: "ElevenLabs", site: "https://elevenlabs.io", kind: "Text to speech", href: "/studio/",
+    vs: "ElevenLabs", site: "https://elevenlabs.io", kind: "Text to speech", href: "/studio/", page: "/elevenlabs-alternative/",
     rows: [
       ["Natural AI voices", "28 English voices (Kokoro-82M)", "Large multilingual voice library"],
       ["Character limits", "None", "Monthly character credits by plan"],
@@ -88,6 +88,7 @@ export default function ComparePage() {
             <p className="mt-4 text-[15px] leading-relaxed text-muted">{r.take}</p>
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
               <Link href={r.href} className={btn("primary", "md")}>Try Kelados {r.kind.toLowerCase()}</Link>
+              <Link href={r.page} className="text-accent hover:underline">Full {r.vs} alternative guide →</Link>
               <a href={r.site} rel="nofollow noopener" className="text-subtle hover:text-fg">{r.vs} plans and features →</a>
             </div>
           </section>

@@ -7,14 +7,15 @@ const COLS = [
   ["Product", [["/dictate/", "Dictation"], ["/notes/", "Notetaker"], ["/studio/", "Speech studio"], ["/projects/", "Projects"], ["/transcribe/", "Transcribe files"], ["/voices/", "Voice library"]]],
   ["Apps", [["/download/", "Desktop app"], ["/integrations/#chrome", "Chrome · Google Docs"], ["/integrations/#word", "Microsoft Word"], ["/integrations/#claude-code", "Claude Code"]]],
   ["Developers", [["/developers/", "SDK & CLI"], ["/developers/#server", "Self-hosted API"], ["/developers/#rest", "REST API"], ["/dashboard/?tab=keys", "API keys"]]],
-  ["Project", [[GITHUB_URL, "GitHub"], ["/compare/", "Compare"], ["/#faq", "FAQ"], ["https://huggingface.co/hexgrad/Kokoro-82M", "Kokoro model"]]],
+  ["Compare", [["/wispr-flow-alternative/", "Wispr Flow alternative"], ["/elevenlabs-alternative/", "ElevenLabs alternative"], ["/otter-alternative/", "Otter alternative"], ["/voice-typing/hindi/", "Hindi voice typing"], ["/voice-typing/", "Voice typing, 99 languages"]]],
+  ["Project", [[GITHUB_URL, "GitHub"], ["/compare/", "All comparisons"], ["/#faq", "FAQ"], ["https://huggingface.co/hexgrad/Kokoro-82M", "Kokoro model"]]],
 ] as const;
 
 export function Footer() {
   return (
     <footer className="relative mt-24 overflow-hidden border-t border-line">
       <div className="dots-ramp pointer-events-none absolute inset-0 opacity-40" />
-      <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)] md:px-8">
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_repeat(5,1fr)] md:px-8">
         <div>
           <Wordmark className="h-8 text-accent" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">
